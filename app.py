@@ -56,6 +56,7 @@ with ev_col2:
     st.markdown("**I was**")
     event_age = st.number_input("", min_value=1, max_value=100, value=20, label_visibility="collapsed")
 with ev_col3:
+    st.markdown("** **")
     add_clicked = st.button("+ Add")
 
 # --- Color picker: selectbox + colored preview ---
