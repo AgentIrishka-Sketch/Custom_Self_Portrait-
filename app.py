@@ -40,7 +40,7 @@ with col_age:
 
 with col_hair:
     st.markdown("**Hair type**")
-    hair_type = st.radio("", ["Straight", "Wavy", "Curly"],
+    hair_type = st.radio("", ["Straight", "Wavy", "Curly", "Chaos"],
                          horizontal=True, label_visibility="collapsed")
     hair_type = hair_type.lower()
 
@@ -167,6 +167,17 @@ def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
         amp = r * 0.045
         phase = (seed % 628) / 100
         rr = r + np.abs(np.sin(angles * freq + phase)) * amp
+        x = cx + np.cos(angles) * rr
+        y = cy + np.sin(angles) * rr
+
+    elif hair_type == "chaos":
+        np.random.seed(seed)
+        freq = 6 + np.random.randint(0, 4)
+        amp = r * 0.04
+        phase = np.random.rand()
+        rr = r + np.sin(angles * freq + phase) * amp
+        noise = np.random.uniform(-0.01, 0.01, len(angles))
+        rr = rr * (1 + noise)
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
 
