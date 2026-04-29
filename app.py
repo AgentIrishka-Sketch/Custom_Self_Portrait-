@@ -50,26 +50,24 @@ st.markdown("---")
 
 st.markdown("**Major life events**")
 
-# Title for the row, above the columns
-st.markdown("**I was**", unsafe_allow_html=True)
-
-# New columns just for this row
 ev_col1, ev_col2, ev_col3 = st.columns([4, 2, 1])
 
 with ev_col1:
     event_label = st.text_input(
-        "", placeholder="e.g. Got married", label_visibility="collapsed"
+        " ", placeholder="e.g. Got married", label_visibility="collapsed"
     )
 
 with ev_col2:
+    st.markdown("**I was**", unsafe_allow_html=True)  # title inside the row, next to input
     event_age = st.number_input(
         "", min_value=1, max_value=100, value=20, label_visibility="collapsed"
     )
 
 with ev_col3:
-    st.write("")  # placeholder to help baseline match input row
+    # inject a tiny gap above the button to nudge it up visually
+    st.markdown("<div style='line-height: 0.8em'></div>", unsafe_allow_html=True)
     add_clicked = st.button("+ Add", key="add_event")
-
+    
 # --- Color picker: selectbox + colored preview ---
 # --- Color picker: selectbox + colored preview ---
 st.markdown("**Pick the color**")
