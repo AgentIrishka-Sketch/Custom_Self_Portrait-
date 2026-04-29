@@ -62,14 +62,16 @@ with ev_col3:
 # --- Color picker: selectbox + colored preview ---
 # --- Color picker: selectbox + colored preview ---
 color_col1, color_col2 = st.columns([3, 1])
+
 with color_col1:
     st.markdown("**Pick the color**")
     selected_name = st.selectbox(
         "Color",
         options=list(PASTELS.keys()),
         index=0,
-        label_visibility="collapsed",  # optional: removes label if you don’t need it
+        label_visibility="collapsed",
     )
+
 selected_hex = PASTELS[selected_name]
 
 with color_col2:
@@ -93,7 +95,6 @@ with color_col2:
         """,
         unsafe_allow_html=True,
     )
-
 
 # --- Events state ---
 if "events" not in st.session_state:
