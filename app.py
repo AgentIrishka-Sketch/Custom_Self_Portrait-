@@ -200,7 +200,7 @@ def generate_art(age, hair_type, events):
 
         draw_ring(ax, cx, cy, r, hair_type, i, color, alpha, lw)
 
-    core = plt.Circle((cx, cy), core_r, color="#8B5E3C", zorder=10)
+    core = plt.Circle((cx, cy), core_r, color="#D3B392", zorder=10)
     ax.add_patch(core)
 
     if events:
