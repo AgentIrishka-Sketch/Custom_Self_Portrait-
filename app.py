@@ -56,7 +56,7 @@ with ev_col1:
 
 
 with ev_col2:
-    event_age = st.number_input("", min_value=1, max_value=100, value=20, placeholder="e.g. 20 years old", label_visibility="collapsed")
+    event_age = st.number_input("", min_value=1, max_value=100, value=20, label_visibility="collapsed")
 
 
 with ev_col3:
