@@ -4,7 +4,7 @@ import streamlit as st
 from io import BytesIO
 
 st.set_page_config(page_title="Hair Age Art", layout="centered")
-st.title("🌿 Hair Age Art")
+st.title("Self Reflection")
 st.write("Generate a unique portrait based on your age and hair type.")
 
 # Pastel colors with friendly names
