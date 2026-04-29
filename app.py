@@ -47,7 +47,6 @@ with col_hair:
 st.markdown("---")
 
 # --- Life events section ---
-st.markdown("**Major life events**")
 
 ev_col1, ev_col2, ev_col3 = st.columns([4, 2, 1])
 with ev_col1:
