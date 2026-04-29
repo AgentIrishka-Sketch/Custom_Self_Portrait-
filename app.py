@@ -73,15 +73,14 @@ with color_col1:
 selected_hex = PASTELS[selected_name]
 
 with color_col2:
+    # Tiny empty markdown to match selectbox height baseline
+    st.write(" ")
     st.markdown(
         f"""
         <div style="
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 44px;
-            height: 44px;
-            margin-top: 0;
         ">
             <div style="
                 width: 36px;
@@ -94,6 +93,7 @@ with color_col2:
         """,
         unsafe_allow_html=True,
     )
+
 
 # --- Events state ---
 if "events" not in st.session_state:
