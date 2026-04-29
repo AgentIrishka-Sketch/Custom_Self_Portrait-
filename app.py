@@ -172,7 +172,7 @@ def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
 
     elif hair_type == "chaos":
         np.random.seed(seed)
-        freq = 6 + np.random.randint(0, 4)
+        freq = 12 + np.random.randint(0, 4)
         amp = r * 0.04
         phase = np.random.rand()
         rr = r + np.sin(angles * freq + phase) * amp
