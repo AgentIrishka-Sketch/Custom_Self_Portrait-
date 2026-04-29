@@ -189,7 +189,7 @@ def generate_art(age, hair_type, events):
     for i in range(1, age + 1):
         r = core_r + i * step
         t = i / age
-      #  lw = 1.4 if i % 5 == 0 else 0.7
+        lw = 0.7
 
         if i in event_map:
             color = hex_to_rgb(event_map[i]["color"])
