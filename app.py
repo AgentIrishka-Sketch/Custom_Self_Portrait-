@@ -90,8 +90,8 @@ with color_col2:
             height: 24px;
         ">
             <div style="
-                width: 18px;
-                height: 18px;
+                width: 36px;
+                height: 36px;
                 border-radius: 50%;
                 background: {selected_hex};
                 border: 1px solid #ccc;
