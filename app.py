@@ -30,8 +30,8 @@ def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
         y = cy + np.sin(angles) * rr
 
     elif hair_type == "curly":
-        freq = 10 + (ring_index % 3)
-        amp = r * 0.06 + 2
+        freq = 18 + (ring_index % 6)
+        amp = r * 0.045
         phase = (seed % 628) / 100
         rr = r + np.sin(angles * freq + phase) * amp
         x = cx + np.cos(angles) * rr
