@@ -1,6 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import streamlit as st
+from io import BytesIO
+
+
+st.set_page_config(page_title="Self Portrait", layout="centered")
+ 
+st.title("🌿 Self Biography Art")
+st.write("Generate a unique portrait based on your data.")
+ 
+age = st.slider("Age", min_value=1, max_value=100, value=35)
+hair_type = st.selectbox("Hair type", ["straight", "medium", "curly"])
+
 
 def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
     steps = 360
