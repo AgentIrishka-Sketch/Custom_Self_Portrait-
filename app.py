@@ -61,10 +61,11 @@ with ev_col3:
 
 # --- Color picker: selectbox + colored preview ---
 # --- Color picker: selectbox + colored preview ---
+st.markdown("**Pick the color**")
+
 color_col1, color_col2 = st.columns([3, 1])
 
 with color_col1:
-    st.markdown("**Pick the color**")
     selected_name = st.selectbox(
         "Color",
         options=list(PASTELS.keys()),
@@ -72,21 +73,25 @@ with color_col1:
         label_visibility="collapsed",
     )
 
+with color_col2:
+    # Help Streamlit push the baseline to the selectbox level
+    st.write("")
+
 selected_hex = PASTELS[selected_name]
 
 with color_col2:
-    # Tiny empty markdown to match selectbox height baseline
-    st.write(" ")
     st.markdown(
         f"""
         <div style="
-            display: flex;
+            display: inline-flex;
             justify-content: center;
             align-items: center;
+            margin-top: -24px;
+            height: 24px;
         ">
             <div style="
-                width: 36px;
-                height: 36px;
+                width: 18px;
+                height: 18px;
                 border-radius: 50%;
                 background: {selected_hex};
                 border: 1px solid #ccc;
@@ -95,7 +100,6 @@ with color_col2:
         """,
         unsafe_allow_html=True,
     )
-
 # --- Events state ---
 if "events" not in st.session_state:
     st.session_state.events = []
