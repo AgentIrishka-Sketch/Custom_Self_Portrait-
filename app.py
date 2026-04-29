@@ -62,17 +62,17 @@ with ev_col3:
 color_col1, color_col2 = st.columns([3, 1])
 with color_col1:
     selected_name = st.selectbox(
-        "Color",
+        "Choose color of the event",
         options=list(PASTELS.keys()),
         index=0,
     )
 selected_hex = PASTELS[selected_name]
 
 with color_col2:
-    st.markdown("&nbsp;", unsafe_allow_html=True)  # spacer to align vertically
-    st.markdown(
+   st.markdown(
+        f"<div style='display:flex;align-items:center;justify-content:center;min-height:48px;'>"
         f"<div style='width:36px;height:36px;border-radius:50%;"
-        f"background:{selected_hex};border:1px solid #ccc;margin-top:8px;'></div>",
+        f"background:{selected_hex};border:1px solid #ccc;'></div></div>",
         unsafe_allow_html=True,
     )
 
