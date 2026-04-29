@@ -7,14 +7,31 @@ st.set_page_config(page_title="Hair Age Art", layout="centered")
 st.title("🌿 Hair Age Art")
 st.write("Generate a unique portrait based on your age and hair type.")
 
-PASTELS = [
-    "#F4A7B9", "#F7C6A3", "#FAE29A", "#B8E4A8", "#A8D8EA",
-    "#C3B1E1", "#F2B5D4", "#A8E6CF", "#FFD3B6", "#D4A5A5",
-    "#B5D5C5", "#E8C5A0", "#C5B4E3", "#A0C4D8", "#F0C9C0",
-    "#D6EAF8", "#D5F5E3", "#FDEBD0", "#F9EBEA", "#E8DAEF",
-]
+# Pastel colors with friendly names
+PASTELS = {
+    "Rose":        "#F4A7B9",
+    "Peach":       "#F7C6A3",
+    "Lemon":       "#FAE29A",
+    "Sage":        "#B8E4A8",
+    "Sky":         "#A8D8EA",
+    "Lavender":    "#C3B1E1",
+    "Pink":        "#F2B5D4",
+    "Mint":        "#A8E6CF",
+    "Apricot":     "#FFD3B6",
+    "Dusty Rose":  "#D4A5A5",
+    "Seafoam":     "#B5D5C5",
+    "Sand":        "#E8C5A0",
+    "Lilac":       "#C5B4E3",
+    "Powder Blue": "#A0C4D8",
+    "Blush":       "#F0C9C0",
+    "Ice Blue":    "#D6EAF8",
+    "Pale Green":  "#D5F5E3",
+    "Cream":       "#FDEBD0",
+    "Ballet":      "#F9EBEA",
+    "Wisteria":    "#E8DAEF",
+}
 
-# --- Top row: age slider on left, hair type on right ---
+# --- Top row: age slider + hair type ---
 col_age, col_hair = st.columns(2)
 
 with col_age:
@@ -32,37 +49,33 @@ st.markdown("---")
 # --- Life events section ---
 st.markdown("**Major life events**")
 
-# Event name + age + add button in one row
 ev_col1, ev_col2, ev_col3 = st.columns([4, 2, 1])
 with ev_col1:
     event_label = st.text_input("", placeholder="e.g. Got married", label_visibility="collapsed")
 with ev_col2:
-    event_age = st.number_input("", min_value=1, max_value=100, value=20,
-                                placeholder="Age", label_visibility="collapsed")
+    event_age = st.number_input("", min_value=1, max_value=100, value=20, label_visibility="collapsed")
 with ev_col3:
     add_clicked = st.button("+ Add")
 
-# --- Pastel color swatches ---
-st.markdown("**Color**")
+# --- Color picker: selectbox + colored preview ---
+color_col1, color_col2 = st.columns([3, 1])
+with color_col1:
+    selected_name = st.selectbox(
+        "Color",
+        options=list(PASTELS.keys()),
+        index=0,
+    )
+selected_hex = PASTELS[selected_name]
 
-if "selected_color" not in st.session_state:
-    st.session_state.selected_color = PASTELS[0]
+with color_col2:
+    st.markdown("&nbsp;", unsafe_allow_html=True)  # spacer to align vertically
+    st.markdown(
+        f"<div style='width:36px;height:36px;border-radius:50%;"
+        f"background:{selected_hex};border:1px solid #ccc;margin-top:8px;'></div>",
+        unsafe_allow_html=True,
+    )
 
-# Draw all swatches as clickable colored buttons using HTML + st.button trick
-swatch_cols = st.columns(len(PASTELS))
-for i, color in enumerate(PASTELS):
-    with swatch_cols[i]:
-        border = "3px solid #333" if st.session_state.selected_color == color else "3px solid transparent"
-        st.markdown(
-            f"<div style='width:22px;height:22px;border-radius:50%;background:{color};"
-            f"border:{border};cursor:pointer;margin:auto;'></div>",
-            unsafe_allow_html=True,
-        )
-        if st.button(" ", key=f"sw_{i}", help=color):
-            st.session_state.selected_color = color
-            st.rerun()
-
-# --- Events list in session state ---
+# --- Events state ---
 if "events" not in st.session_state:
     st.session_state.events = []
 
@@ -70,15 +83,15 @@ if add_clicked and event_label:
     st.session_state.events.append({
         "label": event_label,
         "age": int(event_age),
-        "color": st.session_state.selected_color,
+        "color": selected_hex,
     })
 
-# Show added events
+# Show added events with remove button
 for idx, ev in enumerate(st.session_state.events):
     c1, c2 = st.columns([6, 1])
     with c1:
         st.markdown(
-            f"<span style='color:{ev['color']};font-size:16px;'>●</span> "
+            f"<span style='color:{ev['color']};font-size:18px;'>●</span> "
             f"<strong>Age {ev['age']}</strong> — {ev['label']}",
             unsafe_allow_html=True,
         )
@@ -90,7 +103,7 @@ for idx, ev in enumerate(st.session_state.events):
 st.markdown("---")
 
 
-# --- Helper: hex to RGB 0-1 float tuple ---
+# --- Helper: hex to RGB 0-1 float ---
 def hex_to_rgb(hex_color):
     hex_color = hex_color.lstrip("#")
     return tuple(int(hex_color[i:i+2], 16) / 255 for i in (0, 2, 4))
@@ -125,7 +138,7 @@ def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
     ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
 
-# --- Generate the full artwork ---
+# --- Generate full artwork ---
 def generate_art(age, hair_type, events):
     fig, ax = plt.subplots(figsize=(7, 7), facecolor="#faf8f3")
     ax.set_facecolor("#faf8f3")
@@ -136,7 +149,6 @@ def generate_art(age, hair_type, events):
     core_r = 0.12
     max_r = 2.7
     step = (max_r - core_r) / max(age, 1)
-
     event_map = {ev["age"]: ev for ev in events}
 
     for i in range(1, age + 1):
@@ -153,11 +165,9 @@ def generate_art(age, hair_type, events):
 
         draw_ring(ax, cx, cy, r, hair_type, i, color, alpha, lw)
 
-    # Central dot
     core = plt.Circle((cx, cy), core_r, color="#8B5E3C", zorder=10)
     ax.add_patch(core)
 
-    # Legend
     if events:
         for ev in events:
             ax.plot([], [], color=hex_to_rgb(ev["color"]),
@@ -171,7 +181,7 @@ def generate_art(age, hair_type, events):
     return fig
 
 
-# --- Generate button + output ---
+# --- Generate button ---
 if st.button("Generate portrait"):
     fig = generate_art(int(age), hair_type, st.session_state.events)
     st.pyplot(fig)
