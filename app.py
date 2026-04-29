@@ -66,7 +66,7 @@ with ev_col2:
 
 with ev_col3:
     # inject a tiny gap above the button to nudge it up visually
-    st.markdown("** **, unsafe_allow_html=True")
+    st.markdown(" ", unsafe_allow_html=True)
     add_clicked = st.button("+ Add", key="add_event")
     
 # --- Color picker: selectbox + colored preview ---
