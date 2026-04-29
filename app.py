@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import streamlit as st
 from io import BytesIO
 
@@ -15,74 +14,89 @@ PASTELS = [
     "#D6EAF8", "#D5F5E3", "#FDEBD0", "#F9EBEA", "#E8DAEF",
 ]
 
-# --- Top row: hair type ---
-hair_type = st.selectbox("Hair type", ["straight", "medium", "curly"])
-
-# --- Section row: Major life events + Your age ---
-st.markdown("---")
-col_events, col_age = st.columns(2)
+# --- Top row: age slider on left, hair type on right ---
+col_age, col_hair = st.columns(2)
 
 with col_age:
     st.markdown("**Your age**")
-    age = st.number_input("", min_value=1, max_value=100, value=35, label_visibility="collapsed")
+    age = st.slider("", min_value=1, max_value=100, value=35, label_visibility="collapsed")
 
-with col_events:
-    st.markdown("**Major life events**")
-    event_label = st.text_input("Event name", placeholder="e.g. Got married")
+with col_hair:
+    st.markdown("**Hair type**")
+    hair_type = st.radio("", ["Straight", "Wavy", "Curly"],
+                         horizontal=True, label_visibility="collapsed")
+    hair_type = hair_type.lower()
 
-    st.markdown("**Color**")
-    color_cols = st.columns(10)
-    if "selected_color" not in st.session_state:
-        st.session_state.selected_color = PASTELS[0]
+st.markdown("---")
 
-    for i, color in enumerate(PASTELS):
-        with color_cols[i % 10]:
-            if st.button(
-                " ",
-                key=f"color_{i}",
-                help=color,
-                type="secondary",
-            ):
-                st.session_state.selected_color = color
+# --- Life events section ---
+st.markdown("**Major life events**")
 
-    st.markdown(
-        f"<div style='width:24px;height:24px;border-radius:50%;background:{st.session_state.selected_color};"
-        f"border:2px solid #888;margin-bottom:8px;'></div>",
-        unsafe_allow_html=True,
-    )
+# Event name + age + add button in one row
+ev_col1, ev_col2, ev_col3 = st.columns([4, 2, 1])
+with ev_col1:
+    event_label = st.text_input("", placeholder="e.g. Got married", label_visibility="collapsed")
+with ev_col2:
+    event_age = st.number_input("", min_value=1, max_value=100, value=20,
+                                placeholder="Age", label_visibility="collapsed")
+with ev_col3:
+    add_clicked = st.button("+ Add")
 
-    if "events" not in st.session_state:
-        st.session_state.events = []
+# --- Pastel color swatches ---
+st.markdown("**Color**")
 
-    if st.button("➕ Add event"):
-        if event_label:
-            st.session_state.events.append({
-                "label": event_label,
-                "age": int(age),
-                "color": st.session_state.selected_color,
-            })
+if "selected_color" not in st.session_state:
+    st.session_state.selected_color = PASTELS[0]
 
-    if st.session_state.events:
-        st.write("**Your events:**")
-        for idx, ev in enumerate(st.session_state.events):
-            c1, c2 = st.columns([5, 1])
-            with c1:
-                st.markdown(
-                    f"<span style='color:{ev['color']}'>●</span> <strong>Age {ev['age']}</strong> — {ev['label']}",
-                    unsafe_allow_html=True,
-                )
-            with c2:
-                if st.button("✕", key=f"del_{idx}"):
-                    st.session_state.events.pop(idx)
-                    st.rerun()
+# Draw all swatches as clickable colored buttons using HTML + st.button trick
+swatch_cols = st.columns(len(PASTELS))
+for i, color in enumerate(PASTELS):
+    with swatch_cols[i]:
+        border = "3px solid #333" if st.session_state.selected_color == color else "3px solid transparent"
+        st.markdown(
+            f"<div style='width:22px;height:22px;border-radius:50%;background:{color};"
+            f"border:{border};cursor:pointer;margin:auto;'></div>",
+            unsafe_allow_html=True,
+        )
+        if st.button(" ", key=f"sw_{i}", help=color):
+            st.session_state.selected_color = color
+            st.rerun()
+
+# --- Events list in session state ---
+if "events" not in st.session_state:
+    st.session_state.events = []
+
+if add_clicked and event_label:
+    st.session_state.events.append({
+        "label": event_label,
+        "age": int(event_age),
+        "color": st.session_state.selected_color,
+    })
+
+# Show added events
+for idx, ev in enumerate(st.session_state.events):
+    c1, c2 = st.columns([6, 1])
+    with c1:
+        st.markdown(
+            f"<span style='color:{ev['color']};font-size:16px;'>●</span> "
+            f"<strong>Age {ev['age']}</strong> — {ev['label']}",
+            unsafe_allow_html=True,
+        )
+    with c2:
+        if st.button("×", key=f"del_{idx}"):
+            st.session_state.events.pop(idx)
+            st.rerun()
+
+st.markdown("---")
 
 
-# --- Drawing functions ---
+# --- Helper: hex to RGB 0-1 float tuple ---
 def hex_to_rgb(hex_color):
     hex_color = hex_color.lstrip("#")
     return tuple(int(hex_color[i:i+2], 16) / 255 for i in (0, 2, 4))
 
 
+# --- Draw a single ring ---
 def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
     steps = 800
     angles = np.linspace(0, 2 * np.pi, steps)
@@ -92,7 +106,7 @@ def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
         x = cx + np.cos(angles) * r
         y = cy + np.sin(angles) * r
 
-    elif hair_type == "medium":
+    elif hair_type == "wavy":
         freq = 6
         amp = r * 0.045
         phase = (seed % 628) / 100
@@ -111,6 +125,7 @@ def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
     ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
 
+# --- Generate the full artwork ---
 def generate_art(age, hair_type, events):
     fig, ax = plt.subplots(figsize=(7, 7), facecolor="#faf8f3")
     ax.set_facecolor("#faf8f3")
@@ -130,20 +145,15 @@ def generate_art(age, hair_type, events):
         lw = 1.4 if i % 5 == 0 else 0.7
 
         if i in event_map:
-            ev = event_map[i]
-            color = hex_to_rgb(ev["color"])
+            color = hex_to_rgb(event_map[i]["color"])
             alpha = 0.85
         else:
-            color = (
-                0.24 + t * 0.39,
-                0.12 + t * 0.22,
-                0.02 + t * 0.10,
-            )
+            color = (0.24 + t * 0.39, 0.12 + t * 0.22, 0.02 + t * 0.10)
             alpha = 0.12 + t * 0.55
 
         draw_ring(ax, cx, cy, r, hair_type, i, color, alpha, lw)
 
-    # Core dot
+    # Central dot
     core = plt.Circle((cx, cy), core_r, color="#8B5E3C", zorder=10)
     ax.add_patch(core)
 
@@ -161,16 +171,17 @@ def generate_art(age, hair_type, events):
     return fig
 
 
-fig = generate_art(int(age), hair_type, st.session_state.events)
-st.pyplot(fig)
+# --- Generate button + output ---
+if st.button("Generate portrait"):
+    fig = generate_art(int(age), hair_type, st.session_state.events)
+    st.pyplot(fig)
 
-# Download button
-buf = BytesIO()
-fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
-buf.seek(0)
-st.download_button(
-    label="⬇️ Download portrait",
-    data=buf,
-    file_name=f"portrait_age{int(age)}_{hair_type}.png",
-    mime="image/png",
-)
+    buf = BytesIO()
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+    buf.seek(0)
+    st.download_button(
+        label="⬇️ Download portrait",
+        data=buf,
+        file_name=f"portrait_age{int(age)}_{hair_type}.png",
+        mime="image/png",
+    )
