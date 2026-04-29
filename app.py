@@ -55,10 +55,8 @@ with ev_col1:
     event_label = st.text_input("", placeholder="e.g. Got married", label_visibility="collapsed")
 
 
-# Title above the row, so it doesn't influence button alignment
-st.markdown("**I was**", unsafe_allow_html=True)
 with ev_col2:
-    event_age = st.number_input("", min_value=1, max_value=100, value=20, label_visibility="collapsed")
+    event_age = st.number_input("", min_value=1, max_value=100, value=20, placeholder="e.g. 20 years old", label_visibility="collapsed")
 
 
 with ev_col3:
