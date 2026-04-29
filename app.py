@@ -56,7 +56,7 @@ with ev_col2:
     st.markdown("**I was**")
     event_age = st.number_input("", min_value=1, max_value=100, value=20, label_visibility="collapsed")
 with ev_col3:
-    st.markdown("** **")
+
     add_clicked = st.button("+ Add")
 
 # --- Color picker: selectbox + colored preview ---
@@ -74,9 +74,24 @@ selected_hex = PASTELS[selected_name]
 
 with color_col2:
     st.markdown(
-        f"<div style='display:flex;align-items:center;justify-content:center;min-height:48px;'>"
-        f"<div style='width:36px;height:36px;border-radius:50%;"
-        f"background:{selected_hex};border:1px solid #ccc;'></div></div>",
+        f"""
+        <div style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 44px;
+            height: 44px;
+            margin-top: 0;
+        ">
+            <div style="
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: {selected_hex};
+                border: 1px solid #ccc;
+            "></div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
