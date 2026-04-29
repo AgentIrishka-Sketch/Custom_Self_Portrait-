@@ -62,6 +62,7 @@ with ev_col3:
 # --- Color picker: selectbox + colored preview ---
 color_col1, color_col2 = st.columns([3, 1])
 with color_col1:
+    st.markdown("**Pick the color**")
     selected_name = st.selectbox(
         "Color",
         options=list(PASTELS.keys()),
