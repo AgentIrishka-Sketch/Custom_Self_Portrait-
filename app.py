@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from io import BytesIO
 
-st.set_page_config(page_title="Hair Age Art", layout="centered")
-st.title("Self Reflection")
+st.set_page_config(page_title="RINGS — Year by Year", layout="centered")
+st.title("RINGS — Year by Year")
 st.write("Hi there! My name is Irina, and I'm a creative digital artist. Here's a fun project you can try — and see a tangible outcome of my art touched by your own data. Feel free to download your final personalised piece of art. We can also print it for you on beautiful textured paper and send it straight to you. Enjoy!")
 st.write("The concept: Each line represents a year of your life, inspired by the quiet rings inside a tree. This is your foundation. The rest reveals itself.")
 
@@ -37,20 +37,18 @@ col_age, col_hair = st.columns(2)
 
 with col_age:
     st.markdown("**Your age**")
-    age = st.slider("", min_value=1, max_value=100, value=35, label_visibility="collapsed")
+    age = st.slider("", min_value=1, max_value=100, value=10, label_visibility="collapsed")
 
 with col_hair:
     st.markdown("**Hair type**")
     hair_type = st.radio("", ["Straight", "Wavy", "Curly", "Chaos"],
+                         index=0,
                          horizontal=True, label_visibility="collapsed")
     hair_type = hair_type.lower()
 
 st.markdown("---")
 
 # --- Life events section ---
-
-
-
 ev_col1, ev_col2, ev_col3 = st.columns([4, 2, 1])
 
 with ev_col1:
@@ -60,18 +58,16 @@ with ev_col1:
     )
 
 with ev_col2:
-    st.markdown("**I was**", unsafe_allow_html=True)  # title inside the row, next to input
+    st.markdown("**I was**", unsafe_allow_html=True)
     event_age = st.number_input(
         "", min_value=1, max_value=100, value=20, label_visibility="collapsed"
     )
 
 with ev_col3:
-    # inject a tiny gap above the button to nudge it up visually
     st.markdown(" &nbsp; ", unsafe_allow_html=True)
     add_clicked = st.button("+ Add", key="add_event")
-    
-# --- Color picker: selectbox + colored preview ---
-# --- Color picker: selectbox + colored preview ---
+
+# --- Color picker ---
 st.markdown("**Pick the color**")
 
 color_col1, color_col2 = st.columns([3, 1])
@@ -84,13 +80,10 @@ with color_col1:
         label_visibility="collapsed",
     )
 
-with color_col2:
-    # Help Streamlit push the baseline to the selectbox level
-    st.write("")
-
 selected_hex = PASTELS[selected_name]
 
 with color_col2:
+    st.write("")
     st.markdown(
         f"""
         <div style="
@@ -111,6 +104,7 @@ with color_col2:
         """,
         unsafe_allow_html=True,
     )
+
 # --- Events state ---
 if "events" not in st.session_state:
     st.session_state.events = []
@@ -228,17 +222,17 @@ def generate_art(age, hair_type, events):
     return fig
 
 
-# --- Generate button ---
-if st.button("Generate portrait"):
-    fig = generate_art(int(age), hair_type, st.session_state.events)
-    st.pyplot(fig)
+# --- Live render (no button needed) ---
+fig = generate_art(int(age), hair_type, st.session_state.events)
+st.pyplot(fig)
 
-    buf = BytesIO()
-    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
-    buf.seek(0)
-    st.download_button(
-        label="⬇️ Download portrait",
-        data=buf,
-        file_name=f"portrait_age{int(age)}_{hair_type}.png",
-        mime="image/png",
-    )
+# --- Download button ---
+buf = BytesIO()
+fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+buf.seek(0)
+st.download_button(
+    label="⬇️ Download portrait",
+    data=buf,
+    file_name=f"portrait_age{int(age)}_{hair_type}.png",
+    mime="image/png",
+)
