@@ -5,7 +5,7 @@ from io import BytesIO
 
 st.set_page_config(page_title="Hair Age Art", layout="centered")
 st.title("Self Reflection")
-st.write("Generate a unique portrait based on your age and hair type.")
+st.write("Hi there! My name is Irina, and I'm a creative digital artist. Here's a fun project you can try — and see a tangible outcome of my art touched by your own data. Feel free to download your final personalised piece of art. We can also print it for you on beautiful textured paper and send it straight to you. Enjoy!")
 
 # Pastel colors with friendly names
 PASTELS = {
