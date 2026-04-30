@@ -200,6 +200,7 @@ def generate_art(age, hair_type, events):
         if i in event_map:
             color = hex_to_rgb(event_map[i]["color"])
             alpha = 0.85
+            lw = 1.5
         else:
             color = (0.24 + t * 0.39, 0.12 + t * 0.22, 0.02 + t * 0.10)
             alpha = 0.12 + t * 0.55
