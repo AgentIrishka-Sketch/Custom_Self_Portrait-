@@ -32,6 +32,21 @@ PASTELS = {
     "Wisteria":    "#E8DAEF",
 }
 
+
+# --- Detect number of children from event label ---
+def detect_children(label):
+    label_lower = label.lower()
+    if "quadruplets" in label_lower:
+        return 4
+    if "triplets" in label_lower:
+        return 3
+    if "twins" in label_lower:
+        return 2
+    if any(k in label_lower for k in ["baby", "child", "deliver kid", "born", "daughter", "son", "kid"]):
+        return 1
+    return 0
+
+
 # --- Top row: age slider + hair type ---
 col_age, col_hair = st.columns(2)
 
@@ -54,7 +69,7 @@ ev_col1, ev_col2, ev_col3 = st.columns([4, 2, 1])
 with ev_col1:
     st.markdown("**Major life events**")
     event_label = st.text_input(
-        " ", placeholder="e.g. Got married", label_visibility="collapsed"
+        " ", placeholder="e.g. Got married, had a baby…", label_visibility="collapsed"
     )
 
 with ev_col2:
@@ -111,18 +126,23 @@ if "events" not in st.session_state:
 
 if add_clicked and event_label:
     st.session_state.events.append({
-        "label": event_label,
-        "age": int(event_age),
-        "color": selected_hex,
+        "label":    event_label,
+        "age":      int(event_age),
+        "color":    selected_hex,
+        "children": detect_children(event_label),
     })
 
 # Show added events with remove button
 for idx, ev in enumerate(st.session_state.events):
     c1, c2 = st.columns([6, 1])
     with c1:
+        child_tag = ""
+        if ev.get("children", 0) > 0:
+            names = {1: "👶 child", 2: "👶👶 twins", 3: "👶👶👶 triplets", 4: "👶👶👶👶 quadruplets"}
+            child_tag = f" · <em>{names.get(ev['children'], '')}</em>"
         st.markdown(
             f"<span style='color:{ev['color']};font-size:18px;'>●</span> "
-            f"<strong>Age {ev['age']}</strong> — {ev['label']}",
+            f"<strong>Age {ev['age']}</strong> — {ev['label']}{child_tag}",
             unsafe_allow_html=True,
         )
     with c2:
@@ -179,14 +199,55 @@ def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
     ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
 
+# --- Draw a child portrait ---
+def draw_child_portrait(ax, cx, cy, child_age, color_hex, hair_type):
+    core_r = 0.08
+    # portrait radius scales gently with child's age
+    max_r = 0.35 + (child_age / 100) * 0.55
+    step = (max_r - core_r) / max(child_age, 1)
+
+    for i in range(1, child_age + 1):
+        r = core_r + i * step
+        t = i / child_age
+        # outermost ring gets the event color
+        if i == child_age:
+            color = hex_to_rgb(color_hex)
+            alpha = 0.85
+            lw = 1.5
+        else:
+            color = (0.24 + t * 0.39, 0.12 + t * 0.22, 0.02 + t * 0.10)
+            alpha = 0.12 + t * 0.55
+            lw = 0.5
+        draw_ring(ax, cx, cy, r, hair_type, i, color, alpha, lw)
+
+    ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color="#D3B392", zorder=10))
+    return max_r
+
+
 # --- Generate full artwork ---
 def generate_art(age, hair_type, events):
-    fig, ax = plt.subplots(figsize=(7, 7), facecolor="#faf8f3")
+    # collect all children from events
+    all_children = []
+    for ev in events:
+        n = ev.get("children", 0)
+        child_age = max(1, age - ev["age"])
+        for _ in range(n):
+            all_children.append({
+                "age":   child_age,
+                "color": ev["color"],
+            })
+
+    has_children = len(all_children) > 0
+
+    # widen canvas if we have child portraits
+    fig_w = 10 if has_children else 7
+    fig, ax = plt.subplots(figsize=(fig_w, 7), facecolor="#faf8f3")
     ax.set_facecolor("#faf8f3")
     ax.set_aspect("equal")
     ax.axis("off")
 
-    cx, cy = 0, 0
+    # parent portrait — shift left when children present
+    cx, cy = (-1.2 if has_children else 0), 0
     core_r = 0.12
     max_r = 2.7
     step = (max_r - core_r) / max(age, 1)
@@ -207,9 +268,42 @@ def generate_art(age, hair_type, events):
 
         draw_ring(ax, cx, cy, r, hair_type, i, color, alpha, lw)
 
-    core = plt.Circle((cx, cy), core_r * 0.6, color="#D3B392", zorder=10)
-    ax.add_patch(core)
+    ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color="#D3B392", zorder=10))
 
+    # --- Draw child portraits ---
+    if has_children:
+        n = len(all_children)
+        cx_child = 2.4
+
+        # spread children vertically, centred on 0
+        total_span = min(5.5, n * 1.6)
+        positions = np.linspace(-total_span / 2, total_span / 2, n) if n > 1 else [0.0]
+
+        for i, child in enumerate(all_children):
+            cy_child = positions[i]
+
+            # dashed connector from parent core edge toward child
+            ax.plot(
+                [cx + 0.4, cx_child - 0.8],
+                [cy, cy_child],
+                color="#C0A882", linewidth=0.5,
+                linestyle="--", alpha=0.4, zorder=0,
+            )
+
+            child_max_r = draw_child_portrait(
+                ax, cx_child, cy_child,
+                child["age"], child["color"], hair_type,
+            )
+
+            # small age label under each child portrait
+            ax.text(
+                cx_child, cy_child - child_max_r - 0.15,
+                f"{child['age']}y",
+                ha="center", va="top",
+                fontsize=6, color="#8B7355", alpha=0.7,
+            )
+
+    # --- Legend ---
     if events:
         for ev in events:
             ax.plot([], [], color=hex_to_rgb(ev["color"]),
@@ -217,13 +311,15 @@ def generate_art(age, hair_type, events):
         ax.legend(loc="lower center", bbox_to_anchor=(0.5, -0.08),
                   frameon=False, fontsize=8, ncol=2)
 
-    ax.set_xlim(-3.2, 3.2)
+    x_min = -3.5 if has_children else -3.2
+    x_max = 4.2 if has_children else 3.2
+    ax.set_xlim(x_min, x_max)
     ax.set_ylim(-3.2, 3.2)
     plt.tight_layout()
     return fig
 
 
-# --- Live render (no button needed) ---
+# --- Live render ---
 fig = generate_art(int(age), hair_type, st.session_state.events)
 st.pyplot(fig)
 
