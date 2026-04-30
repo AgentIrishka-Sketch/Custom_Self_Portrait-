@@ -240,14 +240,14 @@ def generate_art(age, hair_type, events):
     has_children = len(all_children) > 0
 
     # widen canvas if we have child portraits
-    fig_w = 10 if has_children else 7
+    fig_w = 12 if has_children else 7
     fig, ax = plt.subplots(figsize=(fig_w, 7), facecolor="#faf8f3")
     ax.set_facecolor("#faf8f3")
     ax.set_aspect("equal")
     ax.axis("off")
 
     # parent portrait — shift left when children present
-    cx, cy = (-1.2 if has_children else 0), 0
+    cx, cy = (-0.8 if has_children else 0), 0
     core_r = 0.12
     max_r = 2.7
     step = (max_r - core_r) / max(age, 1)
@@ -311,8 +311,8 @@ def generate_art(age, hair_type, events):
         ax.legend(loc="lower center", bbox_to_anchor=(0.5, -0.08),
                   frameon=False, fontsize=8, ncol=2)
 
-    x_min = -3.5 if has_children else -3.2
-    x_max = 4.2 if has_children else 3.2
+    x_min = -4.5 if has_children else -3.2
+    x_max = 4.8 if has_children else 3.2
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(-3.2, 3.2)
     plt.tight_layout()
