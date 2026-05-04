@@ -56,10 +56,10 @@ with col_age:
 
 with col_personality:
     st.markdown("**Personality type**")
-    hair_type = st.radio("", ["Phlegmatic", "Melancholic", "Choleric", "Sanguine"],
+    personality_type = st.radio("", ["Phlegmatic", "Melancholic", "Choleric", "Sanguine"],
                          index=0,
                          horizontal=True, label_visibility="collapsed")
-    hair_type = hair_type.lower()
+    personality_type = personality_type.lower()
 
 st.markdown("---")
 
@@ -160,16 +160,16 @@ def hex_to_rgb(hex_color):
 
 
 # --- Draw a single ring ---
-def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
+def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewidth):
     steps = 800
     angles = np.linspace(0, 2 * np.pi, steps)
     seed = ring_index * 17
 
-    if hair_type == "straight":
+    if personality_type == "straight":
         x = cx + np.cos(angles) * r
         y = cy + np.sin(angles) * r
 
-    elif hair_type == "wavy":
+    elif personality_type == "wavy":
         freq = 6
         amp = r * 0.045
         phase = (seed % 628) / 100
@@ -177,7 +177,7 @@ def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
 
-    elif hair_type == "curly":
+    elif personality_type == "curly":
         freq = 18 + (ring_index % 6)
         amp = r * 0.045
         phase = (seed % 628) / 100
@@ -185,7 +185,7 @@ def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
 
-    elif hair_type == "chaos":
+    elif personality_type == "chaos":
         np.random.seed(seed)
         freq = 12 + np.random.randint(0, 4)
         amp = r * 0.04
@@ -200,7 +200,7 @@ def draw_ring(ax, cx, cy, r, hair_type, ring_index, color, alpha, linewidth):
 
 
 # --- Draw a child portrait ---
-def draw_child_portrait(ax, cx, cy, child_age, color_hex, hair_type):
+def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type):
     core_r = 0.08
     # portrait radius scales gently with child's age
     max_r = 0.35 + (child_age / 100) * 0.55
@@ -218,14 +218,14 @@ def draw_child_portrait(ax, cx, cy, child_age, color_hex, hair_type):
             color = (0.24 + t * 0.39, 0.12 + t * 0.22, 0.02 + t * 0.10)
             alpha = 0.12 + t * 0.55
             lw = 0.5
-        draw_ring(ax, cx, cy, r, hair_type, i, color, alpha, lw)
+        draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw)
 
     ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color="#D3B392", zorder=10))
     return max_r
 
 
 # --- Generate full artwork ---
-def generate_art(age, hair_type, events):
+def generate_art(age, personality_type, events):
     # collect all children from events
     all_children = []
     for ev in events:
@@ -266,7 +266,7 @@ def generate_art(age, hair_type, events):
             color = (0.24 + t * 0.39, 0.12 + t * 0.22, 0.02 + t * 0.10)
             alpha = 0.12 + t * 0.55
 
-        draw_ring(ax, cx, cy, r, hair_type, i, color, alpha, lw)
+        draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw)
 
     ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color="#D3B392", zorder=10))
 
@@ -292,7 +292,7 @@ def generate_art(age, hair_type, events):
 
             child_max_r = draw_child_portrait(
                 ax, cx_child, cy_child,
-                child["age"], child["color"], hair_type,
+                child["age"], child["color"], personality_type,
             )
 
             # small age label under each child portrait
@@ -320,7 +320,7 @@ def generate_art(age, hair_type, events):
 
 
 # --- Live render ---
-fig = generate_art(int(age), hair_type, st.session_state.events)
+fig = generate_art(int(age), personality_type, st.session_state.events)
 st.pyplot(fig)
 
 # --- Download button ---
@@ -330,6 +330,6 @@ buf.seek(0)
 st.download_button(
     label="⬇️ Download portrait",
     data=buf,
-    file_name=f"portrait_age{int(age)}_{hair_type}.png",
+    file_name=f"portrait_age{int(age)}_{personality_type}.png",
     mime="image/png",
 )
