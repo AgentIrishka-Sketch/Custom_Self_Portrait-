@@ -165,11 +165,11 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
     angles = np.linspace(0, 2 * np.pi, steps)
     seed = ring_index * 17
 
-    if personality_type == "Phlegmatic":
+    if personality_type == "phlegmatic":
         x = cx + np.cos(angles) * r
         y = cy + np.sin(angles) * r
 
-    elif personality_type == "Choleric":
+    elif personality_type == "melancholic":
         freq = 6
         amp = r * 0.045
         phase = (seed % 628) / 100
@@ -177,7 +177,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
 
-    elif personality_type == "Melancholic":
+    elif personality_type == "choleric":
         freq = 18 + (ring_index % 6)
         amp = r * 0.045
         phase = (seed % 628) / 100
@@ -185,7 +185,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
 
-    elif personality_type == "Sanguine":
+    elif personality_type == "sanguine":
         np.random.seed(seed)
         freq = 12 + np.random.randint(0, 4)
         amp = r * 0.04
