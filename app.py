@@ -177,7 +177,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
 
-    elif personality_type == "Malancholic":
+    elif personality_type == "Melancholic":
         freq = 18 + (ring_index % 6)
         amp = r * 0.045
         phase = (seed % 628) / 100
