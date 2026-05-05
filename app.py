@@ -82,7 +82,7 @@ with ev_col2:
 
 
 # --- Color picker ---
-st.markdown("**Pick the color**")
+st.markdown("**Pick the color of each major event**")
 
 color_col1, color_col2,  ev_col3  = st.columns([3, 1, 2])
 
@@ -120,7 +120,7 @@ with color_col2:
     )
 
 with ev_col3:
-    st.markdown(" &nbsp; ", unsafe_allow_html=True)
+    st.markdown(" ", unsafe_allow_html=True)
     add_clicked = st.button("+ Add", key="add_event")
     
 # --- Events state ---
