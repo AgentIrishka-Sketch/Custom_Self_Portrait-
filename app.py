@@ -66,7 +66,7 @@ with col_personality:
 st.markdown("---")
 
 # --- Life events section ---
-ev_col1, ev_col2, ev_col3 = st.columns([4, 2, 1])
+ev_col1, ev_col2, ev_col3 = st.columns([4, 2])
 
 with ev_col1:
     st.markdown("**Major life events**")
@@ -80,14 +80,14 @@ with ev_col2:
         "", min_value=1, max_value=100, value=20, label_visibility="collapsed"
     )
 
-with ev_col3:
+#with ev_col3:
     st.markdown(" &nbsp; ", unsafe_allow_html=True)
     add_clicked = st.button("+ Add", key="add_event")
 
 # --- Color picker ---
 st.markdown("**Pick the color**")
 
-color_col1, color_col2 = st.columns([3, 1])
+color_col1, color_col2 = st.columns([3, 1, 2])
 
 with color_col1:
     selected_name = st.selectbox(
@@ -122,6 +122,10 @@ with color_col2:
         unsafe_allow_html=True,
     )
 
+with ev_col3:
+    st.markdown(" &nbsp; ", unsafe_allow_html=True)
+    add_clicked = st.button("+ Add", key="add_event")
+    
 # --- Events state ---
 if "events" not in st.session_state:
     st.session_state.events = []
