@@ -47,15 +47,17 @@ def detect_children(label):
     return 0
 
 
-# --- Top row: age slider + hair type ---
-col_age, col_personality = st.columns(2)
+# --- Top row: age slider + personality type ---
+col_age = st.columns(1)
 
 with col_age:
     st.markdown("**Your age**")
-    age = st.slider("", min_value=1, max_value=100, value=10, label_visibility="collapsed")
+    age = st.slider("", min_value=1, max_value=100, value=20, label_visibility="collapsed")
+
+col_personality =st.columns(1)
 
 with col_personality:
-    st.markdown("**Personality type**")
+    st.markdown("**What is your personality type?**")
     personality_type = st.radio("", ["Phlegmatic", "Melancholic", "Choleric", "Sanguine"],
                          index=0,
                          horizontal=True, label_visibility="collapsed")
