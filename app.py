@@ -97,7 +97,7 @@ with color_col1:
 selected_hex = PASTELS[selected_name]
 
 with color_col2:
-    st.write("")
+    #st.write("")
     st.markdown(
         f"""
         <div style="
@@ -120,9 +120,13 @@ with color_col2:
     )
 
 with ev_col3:
-    st.markdown(" ", unsafe_allow_html=True)
+    #st.markdown(" ", unsafe_allow_html=True)
     add_clicked = st.button("+ Add", key="add_event")
-    
+
+    st.markdown("<div style='padding-top: 4px;'>", unsafe_allow_html=True)
+    add_clicked = st.button("+ Add", key="add_event")
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # --- Events state ---
 if "events" not in st.session_state:
     st.session_state.events = []
