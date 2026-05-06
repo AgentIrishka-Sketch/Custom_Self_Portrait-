@@ -161,24 +161,32 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
     seed = ring_index * 17
 
     if personality_type == "phlegmatic":
+        # smooth perfect circle (default)
         x = cx + np.cos(angles) * r
         y = cy + np.sin(angles) * r
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
     elif personality_type == "melancholic":
+        # radial lines instead of rings
+        np.random.seed(seed)
+        num_lines = 36
+        for angle in np.linspace(0, 2 * np.pi, num_lines, endpoint=False):
+            x_start = cx + np.cos(angle) * (r - 0.05)
+            x_end   = cx + np.cos(angle) * (r + 0.05)
+            y_start = cy + np.sin(angle) * (r - 0.05)
+            y_end   = cy + np.sin(angle) * (r + 0.05)
+            ax.plot([x_start, x_end], [y_start, y_end],
+                    color=color, alpha=alpha, linewidth=linewidth)
+
+    elif personality_type == "choleric":
+        # wavy ring
         freq = 6
         amp = r * 0.045
         phase = (seed % 628) / 100
         rr = r + np.sin(angles * freq + phase) * amp
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
-
-    elif personality_type == "choleric":
-        freq = 18 + (ring_index % 6)
-        amp = r * 0.045
-        phase = (seed % 628) / 100
-        rr = r + np.abs(np.sin(angles * freq + phase)) * amp
-        x = cx + np.cos(angles) * rr
-        y = cy + np.sin(angles) * rr
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
     elif personality_type == "sanguine":
         np.random.seed(seed)
@@ -190,9 +198,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         rr = rr * (1 + noise)
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
-
-    ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
-
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
 # --- Draw a child portrait ---
 def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type):
