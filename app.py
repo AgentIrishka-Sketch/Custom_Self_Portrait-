@@ -100,8 +100,8 @@ with color_col2:
         f"""
         <div style="margin-top: 6px;">
             <div style="
-                width: 36px;
-                height: 36px;
+                width: 32px;
+                height: 32px;
                 border-radius: 50%;
                 background: {selected_hex};
                 border: 1px solid #ccc;
