@@ -175,13 +175,13 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
    elif personality_type == "melancholic":
-    num_lines = 72  # more lines = more circle-like
-    for angle in np.linspace(0, 2 * np.pi, num_lines, endpoint=False):
-        x_start = cx + np.cos(angle) * (r - 0.02)  # shorter tick
-        x_end   = cx + np.cos(angle) * (r + 0.02)  # shorter tick
-        y_start = cy + np.sin(angle) * (r - 0.02)
-        y_end   = cy + np.sin(angle) * (r + 0.02)
-        ax.plot([x_start, x_end], [y_start, y_end],
+        num_lines = 72  # more lines = more circle-like
+        for angle in np.linspace(0, 2 * np.pi, num_lines, endpoint=False):
+            x_start = cx + np.cos(angle) * (r - 0.02)  # shorter tick
+            x_end   = cx + np.cos(angle) * (r + 0.02)  # shorter tick
+            y_start = cy + np.sin(angle) * (r - 0.02)
+            y_end   = cy + np.sin(angle) * (r + 0.02)
+            ax.plot([x_start, x_end], [y_start, y_end],
                 color=color, alpha=alpha, linewidth=linewidth)
 
     elif personality_type == "choleric":
