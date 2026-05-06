@@ -60,7 +60,7 @@ with col_personality:
     st.markdown("**What is your personality type?**")
     personality_type = st.radio(
         "",
-        ["—", "Phlegmatic", "Melancholic", "Choleric", "Sanguine"],
+        ["Phlegmatic", "Melancholic", "Choleric", "Sanguine"],
         index=0,
         horizontal=True,
         label_visibility="collapsed"
@@ -164,13 +164,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
     angles = np.linspace(0, 2 * np.pi, steps)
     seed = ring_index * 17
 
-    # Default: plain circle when no personality selected
-    if personality_type not in ("phlegmatic", "melancholic", "choleric", "sanguine"):
-        x = cx + np.cos(angles) * r
-        y = cy + np.sin(angles) * r
-        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
-        return
-
+    
     if personality_type == "phlegmatic":
         freq = 6
         amp = r * 0.045
