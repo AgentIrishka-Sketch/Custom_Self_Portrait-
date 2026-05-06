@@ -177,7 +177,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
     elif personality_type == "melancholic":
         # radial tick lines radiating outward at each ring radius
         num_lines = 36
-        for angle in np.linspace(0, 2 * np.pi, num_lines, endpoint=False):
+        for angle in np.linspace(0, 1 * np.pi, num_lines, endpoint=False):
             x_start = cx + np.cos(angle) * (r - 0.05)
             x_end   = cx + np.cos(angle) * (r + 0.05)
             y_start = cy + np.sin(angle) * (r - 0.05)
