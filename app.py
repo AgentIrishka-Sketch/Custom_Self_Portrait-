@@ -81,11 +81,10 @@ with ev_col2:
     )
 
 # --- Color picker ---
-st.markdown("**Pick the color of each major event**")
-
-color_col1, color_col2,  ev_col3  = st.columns([2, 1, 1])
+color_col1, color_col2, ev_col3 = st.columns([3, 1, 1])
 
 with color_col1:
+    st.markdown("**Pick the color of each major event**")
     selected_name = st.selectbox(
         "Color",
         options=list(PASTELS.keys()),
@@ -96,9 +95,10 @@ with color_col1:
 selected_hex = PASTELS[selected_name]
 
 with color_col2:
+    st.markdown("&nbsp;", unsafe_allow_html=True)  # matches the label height above
     st.markdown(
         f"""
-        <div style="margin-top: 32px;">
+        <div style="margin-top: 6px;">
             <div style="
                 width: 36px;
                 height: 36px;
@@ -112,9 +112,8 @@ with color_col2:
     )
 
 with ev_col3:
-    st.markdown("<div style='margin-top: 28px;'>", unsafe_allow_html=True)
+    st.markdown("&nbsp;", unsafe_allow_html=True)  # matches the label height above
     add_clicked = st.button("+ Add", key="add_event")
-    st.markdown("</div>", unsafe_allow_html=True)
     
 # --- Events state ---
 if "events" not in st.session_state:
