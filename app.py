@@ -162,9 +162,12 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
 
     if personality_type == "phlegmatic":
         # smooth perfect circle (default)
-        x = cx + np.cos(angles) * r
-        y = cy + np.sin(angles) * r
-        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
+        freq = 6
+        amp = r * 0.045
+        phase = (seed % 628) / 100
+        rr = r + np.sin(angles * freq + phase) * amp
+        x = cx + np.cos(angles) * rr
+        y = cy + np.sin(angles) * rr 
 
     elif personality_type == "melancholic":
         # radial lines instead of rings
@@ -180,7 +183,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
 
     elif personality_type == "choleric":
         # wavy ring
-        freq = 6
+        freq = 12
         amp = r * 0.045
         phase = (seed % 628) / 100
         rr = r + np.sin(angles * freq + phase) * amp
