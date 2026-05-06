@@ -47,7 +47,7 @@ def detect_children(label):
     return 0
 
 
-# --- Top row: age slider and  personality type ---
+# --- Top row: age slider and personality type ---
 
 col_age, = st.columns(1)
 with col_age:
@@ -58,9 +58,13 @@ with col_age:
 col_personality, = st.columns(1)
 with col_personality:
     st.markdown("**What is your personality type?**")
-    personality_type = st.radio("", ["Phlegmatic", "Melancholic", "Choleric", "Sanguine"],
-                         index=0,
-                         horizontal=True, label_visibility="collapsed")
+    personality_type = st.radio(
+        "",
+        ["—", "Phlegmatic", "Melancholic", "Choleric", "Sanguine"],
+        index=0,
+        horizontal=True,
+        label_visibility="collapsed"
+    )
     personality_type = personality_type.lower()
 
 st.markdown("---")
@@ -95,7 +99,7 @@ with color_col1:
 selected_hex = PASTELS[selected_name]
 
 with color_col2:
-    st.markdown("&nbsp;", unsafe_allow_html=True)  # matches the label height above
+    st.markdown("&nbsp;", unsafe_allow_html=True)
     st.markdown(
         f"""
         <div style="margin-top: 6px;">
@@ -112,9 +116,9 @@ with color_col2:
     )
 
 with ev_col3:
-    st.markdown("&nbsp;", unsafe_allow_html=True)  # matches the label height above
+    st.markdown("&nbsp;", unsafe_allow_html=True)
     add_clicked = st.button("+ Add", key="add_event")
-    
+
 # --- Events state ---
 if "events" not in st.session_state:
     st.session_state.events = []
@@ -160,18 +164,24 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
     angles = np.linspace(0, 2 * np.pi, steps)
     seed = ring_index * 17
 
+    # Default: plain circle when no personality selected
+    if personality_type not in ("phlegmatic", "melancholic", "choleric", "sanguine"):
+        x = cx + np.cos(angles) * r
+        y = cy + np.sin(angles) * r
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
+        return
+
     if personality_type == "phlegmatic":
-        # smooth perfect circle (default)
         freq = 6
         amp = r * 0.045
         phase = (seed % 628) / 100
         rr = r + np.sin(angles * freq + phase) * amp
         x = cx + np.cos(angles) * rr
-        y = cy + np.sin(angles) * rr 
+        y = cy + np.sin(angles) * rr
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
     elif personality_type == "melancholic":
-        # radial lines instead of rings
-        np.random.seed(seed)
+        # radial tick lines radiating outward at each ring radius
         num_lines = 36
         for angle in np.linspace(0, 2 * np.pi, num_lines, endpoint=False):
             x_start = cx + np.cos(angle) * (r - 0.05)
@@ -182,7 +192,6 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
                     color=color, alpha=alpha, linewidth=linewidth)
 
     elif personality_type == "choleric":
-        # wavy ring
         freq = 12
         amp = r * 0.045
         phase = (seed % 628) / 100
@@ -203,17 +212,16 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         y = cy + np.sin(angles) * rr
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
+
 # --- Draw a child portrait ---
 def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type):
     core_r = 0.08
-    # portrait radius scales gently with child's age
     max_r = 0.35 + (child_age / 100) * 0.55
     step = (max_r - core_r) / max(child_age, 1)
 
     for i in range(1, child_age + 1):
         r = core_r + i * step
         t = i / child_age
-        # outermost ring gets the event color
         if i == child_age:
             color = hex_to_rgb(color_hex)
             alpha = 0.85
@@ -230,7 +238,6 @@ def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type):
 
 # --- Generate full artwork ---
 def generate_art(age, personality_type, events):
-    # collect all children from events
     all_children = []
     for ev in events:
         n = ev.get("children", 0)
@@ -243,14 +250,12 @@ def generate_art(age, personality_type, events):
 
     has_children = len(all_children) > 0
 
-    # widen canvas if we have child portraits
     fig_w = 12 if has_children else 7
     fig, ax = plt.subplots(figsize=(fig_w, 7), facecolor="#faf8f3")
     ax.set_facecolor("#faf8f3")
     ax.set_aspect("equal")
     ax.axis("off")
 
-    # parent portrait — shift left when children present
     cx, cy = (-0.8 if has_children else 0), 0
     core_r = 0.12
     max_r = 2.7
@@ -274,19 +279,16 @@ def generate_art(age, personality_type, events):
 
     ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color="#D3B392", zorder=10))
 
-    # --- Draw child portraits ---
     if has_children:
         n = len(all_children)
         cx_child = 2.4
 
-        # spread children vertically, centred on 0
         total_span = min(5.5, n * 1.6)
         positions = np.linspace(-total_span / 2, total_span / 2, n) if n > 1 else [0.0]
 
         for i, child in enumerate(all_children):
             cy_child = positions[i]
 
-            # dashed connector from parent core edge toward child
             ax.plot(
                 [cx + 0.4, cx_child - 0.8],
                 [cy, cy_child],
@@ -299,7 +301,6 @@ def generate_art(age, personality_type, events):
                 child["age"], child["color"], personality_type,
             )
 
-            # small age label under each child portrait
             ax.text(
                 cx_child, cy_child - child_max_r - 0.15,
                 f"{child['age']}y",
@@ -307,7 +308,6 @@ def generate_art(age, personality_type, events):
                 fontsize=6, color="#8B7355", alpha=0.7,
             )
 
-    # --- Legend ---
     if events:
         for ev in events:
             ax.plot([], [], color=hex_to_rgb(ev["color"]),
