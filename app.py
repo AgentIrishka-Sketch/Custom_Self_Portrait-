@@ -80,7 +80,6 @@ with ev_col2:
         "", min_value=1, max_value=100, value=20, label_visibility="collapsed"
     )
 
-
 # --- Color picker ---
 st.markdown("**Pick the color of each major event**")
 
@@ -97,16 +96,9 @@ with color_col1:
 selected_hex = PASTELS[selected_name]
 
 with color_col2:
-    #st.write("")
     st.markdown(
         f"""
-        <div style="
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: -24px;
-            height: 24px;
-        ">
+        <div style="margin-top: 32px;">
             <div style="
                 width: 36px;
                 height: 36px;
@@ -120,10 +112,10 @@ with color_col2:
     )
 
 with ev_col3:
-    st.markdown("<div style='padding-top: 4px;'>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 28px;'>", unsafe_allow_html=True)
     add_clicked = st.button("+ Add", key="add_event")
     st.markdown("</div>", unsafe_allow_html=True)
-
+    
 # --- Events state ---
 if "events" not in st.session_state:
     st.session_state.events = []
