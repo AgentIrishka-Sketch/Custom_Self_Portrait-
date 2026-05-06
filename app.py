@@ -81,7 +81,7 @@ with ev_col2:
     )
 
 # --- Color picker ---
-color_col1, color_col2, ev_col3 = st.columns([3, 1, 1])
+color_col1, color_col2, ev_col3 = st.columns([3, 2, 1])
 
 with color_col1:
     st.markdown("**Pick the color of each major event**")
