@@ -306,13 +306,17 @@ def generate_art(age, personality_type, events):
         for i, child in enumerate(all_children):
             cy_child = positions[i]
 
-            ax.plot(
-                [cx + 0.4, cx_child - 0.8],
-                [cy, cy_child],
-                color="#C0A882", linewidth=0.5,
-                linestyle="--", alpha=0.4, zorder=0,
-            )
+    # find the radius of the ring at the birth age
+    birth_ring = max(1, age - child["age"])
+    r_birth = core_r + birth_ring * step
 
+    # start connector from the edge of that specific ring
+         ax.plot(
+             [cx + r_birth, cx_child - 0.8],
+             [cy, cy_child],
+             color="#C0A882", linewidth=0.5,
+             linestyle="--", alpha=0.4, zorder=0,
+            )
             child_max_r = draw_child_portrait(
                 ax, cx_child, cy_child,
                 child["age"], child["color"], personality_type,
