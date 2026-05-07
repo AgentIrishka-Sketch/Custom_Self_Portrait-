@@ -323,6 +323,21 @@ def generate_art(age, personality_type, events):
                 child["age"], child["color"], personality_type,
             )
 
+            # connector ends at the left edge of the child's outermost ring
+            ax.plot(
+                [cx + r_birth, cx_child - child_max_r],
+                [cy, cy_child],
+                color="#C0A882", linewidth=0.5,
+                linestyle="--", alpha=0.4, zorder=0,
+            )
+
+            ax.text(
+                cx_child, cy_child - child_max_r - 0.15,
+                f"{child['age']}y",
+                ha="center", va="top",
+                fontsize=6, color="#8B7355", alpha=0.7,
+            )
+
             ax.text(
                 cx_child, cy_child - child_max_r - 0.15,
                 f"{child['age']}y",
