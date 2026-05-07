@@ -5,9 +5,7 @@ from io import BytesIO
 
 st.set_page_config(page_title="RINGS — Year by Year", layout="centered")
 st.title("RINGS — Year by Year")
-st.write("Hi there! My name is Irina. Here’s a fun project you can try — and a chance to see a tangible outcome of my art shaped by your own data. Feel free to download your final personalised infographic. This is just the beginning — I’ll be adding new features soon! We can also print your artwork on beautiful textured paper and send it directly to you.
-
-Enjoy!")
+st.write(" Hi there! My name is Irina. Here’s a fun project you can try — and a chance to see a tangible outcome of my art shaped by your own data. Feel free to download your final personalised infographic. This is just the beginning — I’ll be adding new features soon! We can also print your artwork on beautiful textured paper and send it directly to you. Enjoy!")
 st.write("The concept: Each line represents a year of your life, inspired by the quiet rings inside a tree. This is your foundation. The rest reveals itself.")
 
 # Pastel colors with friendly names
