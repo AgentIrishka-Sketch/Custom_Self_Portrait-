@@ -266,8 +266,8 @@ def generate_art(age, personality_type, events):
     has_children = len(all_children) > 0
 
     fig_w = 12 if has_children else 7
-    fig, ax = plt.subplots(figsize=(fig_w, 7), facecolor="#faf8f3")
-    ax.set_facecolor("#faf8f3")
+    fig, ax = plt.subplots(figsize=(fig_w, 7), facecolor="#ffffff")
+    ax.set_facecolor("#ffffff")
     ax.set_aspect("equal")
     ax.axis("off")
 
