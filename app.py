@@ -93,7 +93,7 @@ with col_personality:
                 """,
                 unsafe_allow_html=True,
             )
-            if st.button(name, key=f"btn_{name}", label_visibility="collapsed"):
+            if st.button(name, key=f"btn_{name}"):
                 st.session_state.personality_type = name
 
     personality_type = st.session_state.personality_type.lower()
