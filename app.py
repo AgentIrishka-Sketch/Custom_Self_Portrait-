@@ -185,15 +185,6 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
                 color=color, alpha=alpha, linewidth=linewidth)
 
     elif personality_type == "choleric":
-        freq = 12
-        amp = r * 0.045
-        phase = (seed % 628) / 100
-        rr = r + np.sin(angles * freq + phase) * amp
-        x = cx + np.cos(angles) * rr
-        y = cy + np.sin(angles) * rr
-        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
-
-    elif personality_type == "sanguine":
         np.random.seed(seed)
         freq = 12 + np.random.randint(0, 4)
         amp = r * 0.04
@@ -201,6 +192,15 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         rr = r + np.sin(angles * freq + phase) * amp
         noise = np.random.uniform(-0.01, 0.01, len(angles))
         rr = rr * (1 + noise)
+        x = cx + np.cos(angles) * rr
+        y = cy + np.sin(angles) * rr
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
+   
+    elif personality_type == "sanguine":
+        freq = 12
+        amp = r * 0.045
+        phase = (seed % 628) / 100
+        rr = r + np.sin(angles * freq + phase) * amp
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
