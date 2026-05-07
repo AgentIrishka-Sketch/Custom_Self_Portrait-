@@ -174,7 +174,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         y = cy + np.sin(angles) * rr
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
-   elif personality_type == "melancholic":
+    elif personality_type == "melancholic":
         num_lines = 72  # more lines = more circle-like
         for angle in np.linspace(0, 2 * np.pi, num_lines, endpoint=False):
             x_start = cx + np.cos(angle) * (r - 0.02)  # shorter tick
