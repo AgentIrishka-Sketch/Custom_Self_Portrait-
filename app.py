@@ -190,20 +190,27 @@ for idx, tr in enumerate(st.session_state.travels):
 
 st.markdown("---")
 
-# === NEW: MOOD SLIDERS (per decade) ===
+# === FIXED: MOOD SLIDERS (per decade) ===
 st.markdown("**😊 Happiness by decade**")
 mood_data = {}
 decades = np.arange(0, 101, 10)
-for i, decade_start in enumerate(decades):
+
+# Initialize missing mood values first
+for decade_start in decades:
     if decade_start < age:
-        decade_end = min(decade_start + 9, age - 1)
         key = f"mood_{decade_start}"
         if key not in st.session_state:
             st.session_state[key] = 5  # Default neutral
-        mood = st.session_state[key] = st.slider(
+
+# Now create sliders safely
+for decade_start in decades:
+    if decade_start < age:
+        decade_end = min(decade_start + 9, age - 1)
+        key = f"mood_{decade_start}"
+        mood = st.slider(
             f"Age {decade_start}-{decade_end}",
             min_value=1, max_value=10, value=st.session_state[key],
-            key=key
+            key=key  # This updates session_state automatically
         )
         mood_data[decade_start] = mood / 10.0  # Normalize 0-1
 
