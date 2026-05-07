@@ -307,8 +307,8 @@ def generate_art(age, personality_type, events):
             cy_child = positions[i]
 
     # find the radius of the ring at the birth age
-    birth_ring = max(1, age - child["age"])
-    r_birth = core_r + birth_ring * step
+        birth_ring = max(1, age - child["age"])
+        r_birth = core_r + birth_ring * step
 
     # start connector from the edge of that specific ring
          ax.plot(
