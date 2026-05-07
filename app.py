@@ -39,7 +39,6 @@ PERSONALITY_COLORS = {
     "sanguine":    "#FAE0AA",
 }
 
-
 # --- Detect number of children from event label ---
 def detect_children(label):
     label_lower = label.lower()
@@ -52,7 +51,6 @@ def detect_children(label):
     if any(k in label_lower for k in ["baby", "child", "deliver kid", "born", "daughter", "son", "kid"]):
         return 1
     return 0
-
 
 # --- Top row: age slider and personality type ---
 col_age, = st.columns(1)
@@ -156,12 +154,65 @@ for idx, ev in enumerate(st.session_state.events):
 
 st.markdown("---")
 
+# === NEW: TRAVEL DOTS SECTION ===
+if "travels" not in st.session_state:
+    st.session_state.travels = []
+
+st.markdown("**✈️ Countries visited**")
+travel_col1, travel_col2, travel_col3 = st.columns([4, 1, 1])
+
+with travel_col1:
+    country = st.text_input("Country name", placeholder="e.g. Japan, Italy…", key="country_input")
+
+with travel_col2:
+    travel_age = st.number_input("Age", min_value=1, max_value=100, value=20, key="travel_age")
+
+with travel_col3:
+    if st.button("+ Add travel", key="add_travel") and country:
+        st.session_state.travels.append({
+            "country": country,
+            "age": int(travel_age),
+            "color": selected_hex  # Reuse event color picker
+        })
+
+# Show travels
+for idx, tr in enumerate(st.session_state.travels):
+    c1, c2 = st.columns([6, 1])
+    with c1:
+        st.markdown(
+            f"🌍 <strong>Age {tr['age']}</strong> — {tr['country']}",
+            unsafe_allow_html=True,
+        )
+    with c2:
+        if st.button("×", key=f"del_travel_{idx}"):
+            st.session_state.travels.pop(idx)
+            st.rerun()
+
+st.markdown("---")
+
+# === NEW: MOOD SLIDERS (per decade) ===
+st.markdown("**😊 Happiness by decade**")
+mood_data = {}
+decades = np.arange(0, 101, 10)
+for i, decade_start in enumerate(decades):
+    if decade_start < age:
+        decade_end = min(decade_start + 9, age - 1)
+        key = f"mood_{decade_start}"
+        if key not in st.session_state:
+            st.session_state[key] = 5  # Default neutral
+        mood = st.session_state[key] = st.slider(
+            f"Age {decade_start}-{decade_end}",
+            min_value=1, max_value=10, value=st.session_state[key],
+            key=key
+        )
+        mood_data[decade_start] = mood / 10.0  # Normalize 0-1
+
+st.markdown("---")
 
 # --- Helper: hex to RGB 0-1 float ---
 def hex_to_rgb(hex_color):
     hex_color = hex_color.lstrip("#")
     return tuple(int(hex_color[i:i+2], 16) / 255 for i in (0, 2, 4))
-
 
 # --- Helper: personality-aware ring color ---
 def get_ring_color(personality_type, t):
@@ -174,12 +225,19 @@ def get_ring_color(personality_type, t):
         )
     return (0.24 + t * 0.39, 0.12 + t * 0.22, 0.02 + t * 0.10)
 
+# --- NEW: Get mood adjustment for year ---
+def get_mood_adjustment(year, mood_data):
+    for decade_start in mood_data:
+        if decade_start <= year < decade_start + 10:
+            return 1.0 + (mood_data[decade_start] - 0.5) * 0.3  # -15% to +15% radius
+    return 1.0
 
-# --- Draw a single ring ---
-def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewidth):
+# --- Draw a single ring (MODIFIED for mood) ---
+def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewidth, mood_factor=1.0):
     steps = 800
     angles = np.linspace(0, 2 * np.pi, steps)
     seed = ring_index * 17
+    r *= mood_factor  # Apply mood adjustment
 
     if personality_type == "phlegmatic":
         freq = 6
@@ -226,9 +284,21 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         y = cy + np.sin(angles) * r
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
+# --- NEW: Draw travel dot ---
+def draw_travel_dot(ax, cx, cy, r, age, country, color):
+    # Orbit outside main rings
+    orbit_r = r * 1.15
+    angle = (age / 100) * 2 * np.pi + np.pi/4  # Spiral outward
+    dot_x = cx + orbit_r * np.cos(angle)
+    dot_y = cy + orbit_r * np.sin(angle)
+    
+    # Small country flag-like dot
+    ax.add_patch(plt.Circle((dot_x, dot_y), 0.08, color=color, alpha=0.9, zorder=15))
+    # Subtle glow
+    ax.add_patch(plt.Circle((dot_x, dot_y), 0.12, color=color, alpha=0.2, zorder=14))
 
-# --- Draw a child portrait ---
-def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type):
+# --- Draw a child portrait (MODIFIED for mood) ---
+def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type, mood_data):
     core_r = 0.08
     max_r = 0.35 + (child_age / 100) * 0.55
     step = (max_r - core_r) / max(child_age, 1)
@@ -236,6 +306,7 @@ def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type):
     for i in range(1, child_age + 1):
         r = core_r + i * step
         t = i / child_age
+        mood_factor = get_mood_adjustment(i, mood_data)
         if i == child_age:
             color = hex_to_rgb(color_hex)
             alpha = 0.85
@@ -244,15 +315,14 @@ def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type):
             color = get_ring_color(personality_type, t)
             alpha = 0.12 + t * 0.55
             lw = 0.5
-        draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw)
+        draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw, mood_factor)
 
     ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color=PERSONALITY_COLORS.get(personality_type, "#D3B392"), zorder=10))
     return max_r
 
-
-# --- Generate full artwork ---
-def generate_art(age, personality_type, events):
-    # collect all children, storing event_age for correct ring lookup
+# --- Generate full artwork (MODIFIED) ---
+def generate_art(age, personality_type, events, travels, mood_data):
+    # collect all children
     all_children = []
     for ev in events:
         n = ev.get("children", 0)
@@ -261,11 +331,10 @@ def generate_art(age, personality_type, events):
             all_children.append({
                 "age":       child_age,
                 "color":     ev["color"],
-                "event_age": ev["age"],  # exact age when child was born
+                "event_age": ev["age"],
             })
 
     has_children = len(all_children) > 0
-
     fig_w = 12 if has_children else 7
     fig, ax = plt.subplots(figsize=(fig_w, 7), facecolor="#ffffff")
     ax.set_facecolor("#ffffff")
@@ -278,8 +347,11 @@ def generate_art(age, personality_type, events):
     step = (max_r - core_r) / max(age, 1)
     event_map = {ev["age"]: ev for ev in events}
 
+    # Draw main rings with mood adjustments
     for i in range(1, age + 1):
-        r = core_r + i * step
+        r_base = core_r + i * step
+        mood_factor = get_mood_adjustment(i, mood_data)
+        r = r_base * mood_factor
         t = i / age
         lw = 0.7
 
@@ -291,40 +363,37 @@ def generate_art(age, personality_type, events):
             color = get_ring_color(personality_type, t)
             alpha = 0.12 + t * 0.55
 
-        draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw)
+        draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw, mood_factor)
 
+    # Core circle
     ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color=PERSONALITY_COLORS.get(personality_type, "#D3B392"), zorder=10))
 
+    # === NEW: Travel dots ===
+    for travel in travels:
+        draw_travel_dot(ax, cx, cy, max_r, travel["age"], travel["country"], hex_to_rgb(travel["color"]))
+
+    # Children (if any)
     if has_children:
         n = len(all_children)
         cx_child = 2.4
-
         total_span = min(5.5, n * 1.6)
         positions = np.linspace(-total_span / 2, total_span / 2, n) if n > 1 else [0.0]
 
         for i, child in enumerate(all_children):
             cy_child = positions[i]
-
-            # draw child portrait first so we have child_max_r
             child_max_r = draw_child_portrait(
                 ax, cx_child, cy_child,
-                child["age"], child["color"], personality_type,
+                child["age"], child["color"], personality_type, mood_data,
             )
 
-            # use stored event_age to find exact birth ring radius
+            # Connection line
             birth_ring = child["event_age"]
             r_birth = core_r + birth_ring * step
-
-            # angle from parent center toward child center
             dx = cx_child - cx
             dy = cy_child - cy
             angle = np.arctan2(dy, dx)
-
-            # start: on parent ring at birth, in direction of child
             x_start = cx + r_birth * np.cos(angle)
             y_start = cy + r_birth * np.sin(angle)
-
-            # end: on child's outermost ring edge facing parent
             x_end = cx_child - child_max_r * np.cos(angle)
             y_end = cy_child - child_max_r * np.sin(angle)
 
@@ -342,6 +411,7 @@ def generate_art(age, personality_type, events):
                 fontsize=6, color="#8B7355", alpha=0.7,
             )
 
+    # Legend
     if events:
         for ev in events:
             ax.plot([], [], color=hex_to_rgb(ev["color"]),
@@ -356,9 +426,8 @@ def generate_art(age, personality_type, events):
     plt.tight_layout()
     return fig
 
-
 # --- Live render ---
-fig = generate_art(int(age), personality_type, st.session_state.events)
+fig = generate_art(int(age), personality_type, st.session_state.events, st.session_state.travels, mood_data)
 st.pyplot(fig)
 
 # --- Download button ---
