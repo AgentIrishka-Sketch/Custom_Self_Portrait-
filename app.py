@@ -189,7 +189,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         rr = r + np.sin(angles * freq + phase) * amp
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
-        #ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
     
 
     elif personality_type == "melancholic":
