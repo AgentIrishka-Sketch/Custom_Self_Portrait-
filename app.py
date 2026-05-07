@@ -176,7 +176,6 @@ def get_ring_color(personality_type, t):
 
 
 # --- Draw a single ring ---
-
 def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewidth):
     steps = 800
     angles = np.linspace(0, 2 * np.pi, steps)
@@ -190,7 +189,6 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
-    
 
     elif personality_type == "melancholic":
         num_lines = 72
@@ -224,7 +222,6 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
     else:
-        # default plain circle
         x = cx + np.cos(angles) * r
         y = cy + np.sin(angles) * r
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
@@ -255,14 +252,16 @@ def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type):
 
 # --- Generate full artwork ---
 def generate_art(age, personality_type, events):
+    # collect all children, storing event_age for correct ring lookup
     all_children = []
     for ev in events:
         n = ev.get("children", 0)
         child_age = max(1, age - ev["age"])
         for _ in range(n):
             all_children.append({
-                "age":   child_age,
-                "color": ev["color"],
+                "age":       child_age,
+                "color":     ev["color"],
+                "event_age": ev["age"],  # exact age when child was born
             })
 
     has_children = len(all_children) > 0
@@ -306,33 +305,26 @@ def generate_art(age, personality_type, events):
         for i, child in enumerate(all_children):
             cy_child = positions[i]
 
-            # find the radius of the ring at the birth age
-            birth_ring = max(1, age - child["age"])
-            r_birth = core_r + birth_ring * step
-
-            # start connector from the edge of that specific ring
-            ax.plot(
-                [cx + r_birth, cx_child - 0.8],
-                [cy, cy_child],
-                color="#C0A882", linewidth=0.5,
-                linestyle="--", alpha=0.4, zorder=0,
-            )
-
+            # draw child portrait first so we have child_max_r
             child_max_r = draw_child_portrait(
                 ax, cx_child, cy_child,
                 child["age"], child["color"], personality_type,
             )
 
-            # calculate angle from parent center to child center
+            # use stored event_age to find exact birth ring radius
+            birth_ring = child["event_age"]
+            r_birth = core_r + birth_ring * step
+
+            # angle from parent center toward child center
             dx = cx_child - cx
             dy = cy_child - cy
             angle = np.arctan2(dy, dx)
 
-            # start point: on the parent ring at birth
+            # start: on parent ring at birth, in direction of child
             x_start = cx + r_birth * np.cos(angle)
             y_start = cy + r_birth * np.sin(angle)
 
-            # end point: on the child's outermost ring facing parent
+            # end: on child's outermost ring edge facing parent
             x_end = cx_child - child_max_r * np.cos(angle)
             y_end = cy_child - child_max_r * np.sin(angle)
 
@@ -341,13 +333,6 @@ def generate_art(age, personality_type, events):
                 [y_start, y_end],
                 color="#C0A882", linewidth=0.5,
                 linestyle="--", alpha=0.4, zorder=0,
-            )
-
-            ax.text(
-                cx_child, cy_child - child_max_r - 0.15,
-                f"{child['age']}y",
-                ha="center", va="top",
-                fontsize=6, color="#8B7355", alpha=0.7,
             )
 
             ax.text(
