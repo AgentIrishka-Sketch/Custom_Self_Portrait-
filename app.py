@@ -32,7 +32,12 @@ PASTELS = {
     "Wisteria":    "#E8DAEF",
 }
 
-
+PERSONALITY_COLORS = {
+    "phlegmatic": "#B8D6BE",
+    "melancholic": "#A7C4EB",
+    "choleric":    "#F4A896",
+    "sanguine":    "#FAE0AA",
+}
 # --- Detect number of children from event label ---
 def detect_children(label):
     label_lower = label.lower()
@@ -258,19 +263,28 @@ def generate_art(age, personality_type, events):
     event_map = {ev["age"]: ev for ev in events}
 
     for i in range(1, age + 1):
-        r = core_r + i * step
-        t = i / age
-        lw = 0.7
+    r = core_r + i * step
+    t = i / age
+    lw = 0.7
 
-        if i in event_map:
-            color = hex_to_rgb(event_map[i]["color"])
-            alpha = 0.85
-            lw = 1.5
+    if i in event_map:
+        color = hex_to_rgb(event_map[i]["color"])
+        alpha = 0.85
+        lw = 1.5
+    else:
+        # use personality color if selected, else default wood tones
+        if personality_type in PERSONALITY_COLORS:
+            base = hex_to_rgb(PERSONALITY_COLORS[personality_type])
+            color = (
+                base[0] * (0.5 + 0.5 * t),
+                base[1] * (0.5 + 0.5 * t),
+                base[2] * (0.5 + 0.5 * t),
+            )
         else:
             color = (0.24 + t * 0.39, 0.12 + t * 0.22, 0.02 + t * 0.10)
-            alpha = 0.12 + t * 0.55
+        alpha = 0.12 + t * 0.55
 
-        draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw)
+    draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw)
 
     ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color="#D3B392", zorder=10))
 
