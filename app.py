@@ -63,14 +63,40 @@ with col_age:
 col_personality, = st.columns(1)
 with col_personality:
     st.markdown("**What is your personality type?**")
-    personality_type = st.radio(
-        "",
-        ["Phlegmatic", "Melancholic", "Sanguine", "Choleric"],
-        index=0,
-        horizontal=True,
-        label_visibility="collapsed"
-    )
-    personality_type = personality_type.lower()
+    
+    PERSONALITY_INFO = {
+        "Phlegmatic": "Calm, steady and balanced. Rings flow in gentle waves.",
+        "Melancholic": "Thoughtful, deep and detail-oriented. Rings appear as delicate tick marks.",
+        "Sanguine": "Warm, expressive and energetic. Rings ripple with lively waves.",
+        "Choleric": "Bold, dynamic and passionate. Rings pulse with chaotic energy.",
+    }
+
+    if "personality_type" not in st.session_state:
+        st.session_state.personality_type = "Phlegmatic"
+
+    cols = st.columns(4)
+    for col, name in zip(cols, ["Phlegmatic", "Melancholic", "Sanguine", "Choleric"]):
+        with col:
+            st.markdown(
+                f"""
+                <div title="{PERSONALITY_INFO[name]}" style="
+                    text-align: center;
+                    padding: 6px 4px;
+                    border-radius: 8px;
+                    border: 1px solid #ccc;
+                    cursor: pointer;
+                    font-size: 13px;
+                    background: {'#e8e8e8' if st.session_state.personality_type == name else 'white'};
+                ">
+                    {name}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button(name, key=f"btn_{name}", label_visibility="collapsed"):
+                st.session_state.personality_type = name
+
+    personality_type = st.session_state.personality_type.lower()
 
 st.markdown("---")
 
