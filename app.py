@@ -176,6 +176,7 @@ def get_ring_color(personality_type, t):
 
 
 # --- Draw a single ring ---
+
 def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewidth):
     steps = 800
     angles = np.linspace(0, 2 * np.pi, steps)
@@ -188,7 +189,8 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         rr = r + np.sin(angles * freq + phase) * amp
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
-        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
+        #ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
+    
 
     elif personality_type == "melancholic":
         num_lines = 72
@@ -292,7 +294,8 @@ def generate_art(age, personality_type, events):
 
         draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw)
 
-    ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color="#D3B392", zorder=10))
+   # ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color="#D3B392", zorder=10))
+    ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color=PERSONALITY_COLORS.get(personality_type, "#D3B392"), zorder=10))
 
     if has_children:
         n = len(all_children)
