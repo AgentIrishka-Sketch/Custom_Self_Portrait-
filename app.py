@@ -60,7 +60,7 @@ with col_personality:
     st.markdown("**What is your personality type?**")
     personality_type = st.radio(
         "",
-        ["Phlegmatic", "Melancholic", "Choleric", "Sanguine"],
+        ["Phlegmatic", "Melancholic", "Sanguine", "Choleric" ],
         index=0,
         horizontal=True,
         label_visibility="collapsed"
@@ -184,6 +184,15 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
             ax.plot([x_start, x_end], [y_start, y_end],
                 color=color, alpha=alpha, linewidth=linewidth)
 
+    elif personality_type == "sanguine":
+        freq = 12
+        amp = r * 0.045
+        phase = (seed % 628) / 100
+        rr = r + np.sin(angles * freq + phase) * amp
+        x = cx + np.cos(angles) * rr
+        y = cy + np.sin(angles) * rr
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
+        
     elif personality_type == "choleric":
         np.random.seed(seed)
         freq = 12 + np.random.randint(0, 4)
@@ -196,14 +205,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         y = cy + np.sin(angles) * rr
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
    
-    elif personality_type == "sanguine":
-        freq = 12
-        amp = r * 0.045
-        phase = (seed % 628) / 100
-        rr = r + np.sin(angles * freq + phase) * amp
-        x = cx + np.cos(angles) * rr
-        y = cy + np.sin(angles) * rr
-        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
+    
 
 
 # --- Draw a child portrait ---
