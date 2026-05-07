@@ -38,6 +38,8 @@ PERSONALITY_COLORS = {
     "choleric":    "#F4A896",
     "sanguine":    "#FAE0AA",
 }
+
+
 # --- Detect number of children from event label ---
 def detect_children(label):
     label_lower = label.lower()
@@ -53,19 +55,17 @@ def detect_children(label):
 
 
 # --- Top row: age slider and personality type ---
-
 col_age, = st.columns(1)
 with col_age:
     st.markdown("**Your age**")
     age = st.slider("", min_value=1, max_value=100, value=20, label_visibility="collapsed")
-
 
 col_personality, = st.columns(1)
 with col_personality:
     st.markdown("**What is your personality type?**")
     personality_type = st.radio(
         "",
-        ["Phlegmatic", "Melancholic", "Sanguine", "Choleric" ],
+        ["Phlegmatic", "Melancholic", "Sanguine", "Choleric"],
         index=0,
         horizontal=True,
         label_visibility="collapsed"
@@ -163,13 +163,24 @@ def hex_to_rgb(hex_color):
     return tuple(int(hex_color[i:i+2], 16) / 255 for i in (0, 2, 4))
 
 
+# --- Helper: personality-aware ring color ---
+def get_ring_color(personality_type, t):
+    if personality_type in PERSONALITY_COLORS:
+        base = hex_to_rgb(PERSONALITY_COLORS[personality_type])
+        return (
+            base[0] * (0.5 + 0.5 * t),
+            base[1] * (0.5 + 0.5 * t),
+            base[2] * (0.5 + 0.5 * t),
+        )
+    return (0.24 + t * 0.39, 0.12 + t * 0.22, 0.02 + t * 0.10)
+
+
 # --- Draw a single ring ---
 def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewidth):
     steps = 800
     angles = np.linspace(0, 2 * np.pi, steps)
     seed = ring_index * 17
 
-    
     if personality_type == "phlegmatic":
         freq = 6
         amp = r * 0.045
@@ -180,14 +191,14 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
     elif personality_type == "melancholic":
-        num_lines = 72  # more lines = more circle-like
+        num_lines = 72
         for angle in np.linspace(0, 2 * np.pi, num_lines, endpoint=False):
-            x_start = cx + np.cos(angle) * (r - 0.02)  # shorter tick
-            x_end   = cx + np.cos(angle) * (r + 0.02)  # shorter tick
+            x_start = cx + np.cos(angle) * (r - 0.02)
+            x_end   = cx + np.cos(angle) * (r + 0.02)
             y_start = cy + np.sin(angle) * (r - 0.02)
             y_end   = cy + np.sin(angle) * (r + 0.02)
             ax.plot([x_start, x_end], [y_start, y_end],
-                color=color, alpha=alpha, linewidth=linewidth)
+                    color=color, alpha=alpha, linewidth=linewidth)
 
     elif personality_type == "sanguine":
         freq = 12
@@ -197,7 +208,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
-        
+
     elif personality_type == "choleric":
         np.random.seed(seed)
         freq = 12 + np.random.randint(0, 4)
@@ -209,8 +220,12 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         x = cx + np.cos(angles) * rr
         y = cy + np.sin(angles) * rr
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
-   
-    
+
+    else:
+        # default plain circle
+        x = cx + np.cos(angles) * r
+        y = cy + np.sin(angles) * r
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
 
 # --- Draw a child portrait ---
@@ -227,7 +242,7 @@ def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type):
             alpha = 0.85
             lw = 1.5
         else:
-            color = (0.24 + t * 0.39, 0.12 + t * 0.22, 0.02 + t * 0.10)
+            color = get_ring_color(personality_type, t)
             alpha = 0.12 + t * 0.55
             lw = 0.5
         draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw)
@@ -267,26 +282,17 @@ def generate_art(age, personality_type, events):
         t = i / age
         lw = 0.7
 
-    if i in event_map:
-        color = hex_to_rgb(event_map[i]["color"])
-        alpha = 0.85
-        lw = 1.5
-    else:
-        # use personality color if selected, else default wood tones
-        if personality_type in PERSONALITY_COLORS:
-            base = hex_to_rgb(PERSONALITY_COLORS[personality_type])
-            color = (
-                base[0] * (0.5 + 0.5 * t),
-                base[1] * (0.5 + 0.5 * t),
-                base[2] * (0.5 + 0.5 * t),
-            )
+        if i in event_map:
+            color = hex_to_rgb(event_map[i]["color"])
+            alpha = 0.85
+            lw = 1.5
         else:
-            color = (0.24 + t * 0.39, 0.12 + t * 0.22, 0.02 + t * 0.10)
-        alpha = 0.12 + t * 0.55
+            color = get_ring_color(personality_type, t)
+            alpha = 0.12 + t * 0.55
 
-    draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw)
+        draw_ring(ax, cx, cy, r, personality_type, i, color, alpha, lw)
 
-ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color="#D3B392", zorder=10))
+    ax.add_patch(plt.Circle((cx, cy), core_r * 0.6, color="#D3B392", zorder=10))
 
     if has_children:
         n = len(all_children)
