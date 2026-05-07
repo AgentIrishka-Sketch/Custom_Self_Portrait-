@@ -263,9 +263,9 @@ def generate_art(age, personality_type, events):
     event_map = {ev["age"]: ev for ev in events}
 
     for i in range(1, age + 1):
-    r = core_r + i * step
-    t = i / age
-    lw = 0.7
+        r = core_r + i * step
+        t = i / age
+        lw = 0.7
 
     if i in event_map:
         color = hex_to_rgb(event_map[i]["color"])
