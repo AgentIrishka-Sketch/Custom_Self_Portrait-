@@ -323,10 +323,22 @@ def generate_art(age, personality_type, events):
                 child["age"], child["color"], personality_type,
             )
 
-            # connector ends at the left edge of the child's outermost ring
+            # calculate angle from parent center to child center
+            dx = cx_child - cx
+            dy = cy_child - cy
+            angle = np.arctan2(dy, dx)
+
+            # start point: on the parent ring at birth
+            x_start = cx + r_birth * np.cos(angle)
+            y_start = cy + r_birth * np.sin(angle)
+
+            # end point: on the child's outermost ring facing parent
+            x_end = cx_child - child_max_r * np.cos(angle)
+            y_end = cy_child - child_max_r * np.sin(angle)
+
             ax.plot(
-                [cx + r_birth, cx_child - child_max_r],
-                [cy, cy_child],
+                [x_start, x_end],
+                [y_start, y_end],
                 color="#C0A882", linewidth=0.5,
                 linestyle="--", alpha=0.4, zorder=0,
             )
