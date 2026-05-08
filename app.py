@@ -638,4 +638,3 @@ st.download_button(
     file_name=f"portrait_{mode_tag}.png",
     mime="image/png",
 )
-```
