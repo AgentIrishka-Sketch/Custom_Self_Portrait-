@@ -1,17 +1,24 @@
-
 import time
 import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
 from io import BytesIO
 
-st.set_page_config(page_title="RINGS — Year by Year", layout="centered")
+# -------------------------------------------------------------------
+# Page setup
+# -------------------------------------------------------------------
+
+st.set_page_config(
+    page_title="RINGS — Year by Year",
+    layout="centered"
+)
 
 st.title("RINGS — Year by Year")
 
 st.write(
-    " Hi there! My name is Irina. Here's a fun project you can try — "
-    "and a chance to see a tangible outcome of my art shaped by your own data."
+    "Hi there! My name is Irina. "
+    "Here's a fun project you can try — "
+    "a personal artwork generated from your life story."
 )
 
 # -------------------------------------------------------------------
@@ -44,34 +51,34 @@ PASTELS = {
 PERSONALITY_COLORS = {
     "phlegmatic": "#B8D6BE",
     "melancholic": "#A7C4EB",
-    "choleric": "#F4A896",
     "sanguine": "#FAE0AA",
+    "choleric": "#F4A896",
 }
+
+# -------------------------------------------------------------------
+# Animation configs
+# -------------------------------------------------------------------
 
 ANIM_CONFIG = {
     "phlegmatic": {
-        "steps": 14,
-        "sleep": 0.09,
+        "steps": 12,
+        "sleep": 0.06,
         "easing": "ease_out",
-        "label": "Breathing deeper…",
     },
     "melancholic": {
-        "steps": 20,
-        "sleep": 0.07,
+        "steps": 16,
+        "sleep": 0.05,
         "easing": "ease_in",
-        "label": "Carving inward…",
     },
     "sanguine": {
         "steps": 8,
-        "sleep": 0.04,
+        "sleep": 0.03,
         "easing": "bounce",
-        "label": "Coming alive!",
     },
     "choleric": {
         "steps": 6,
-        "sleep": 0.03,
+        "sleep": 0.02,
         "easing": "linear",
-        "label": "Igniting…",
     },
 }
 
@@ -79,27 +86,30 @@ ANIM_CONFIG = {
 # Session state
 # -------------------------------------------------------------------
 
-for key, default in [
-    ("events", []),
-    ("depth", 0.0),
-    ("is_3d", False),
-    ("animating", False),
-]:
-    if key not in st.session_state:
-        st.session_state[key] = default
+defaults = {
+    "events": [],
+    "depth": 0.0,
+    "is_3d": False,
+    "animating": False,
+}
+
+for k, v in defaults.items():
+
+    if k not in st.session_state:
+        st.session_state[k] = v
 
 # -------------------------------------------------------------------
-# UI
+# Inputs
 # -------------------------------------------------------------------
 
 st.markdown("### Your age")
 
 age = st.slider(
     "",
-    min_value=1,
-    max_value=100,
-    value=20,
-    label_visibility="collapsed",
+    1,
+    100,
+    20,
+    label_visibility="collapsed"
 )
 
 st.markdown("### Personality type")
@@ -108,7 +118,7 @@ personality_type = st.radio(
     "",
     ["Phlegmatic", "Melancholic", "Sanguine", "Choleric"],
     horizontal=True,
-    label_visibility="collapsed",
+    label_visibility="collapsed"
 ).lower()
 
 st.markdown("---")
@@ -116,33 +126,37 @@ st.markdown("---")
 col1, col2 = st.columns([4, 2])
 
 with col1:
+
     event_label = st.text_input(
         "",
-        placeholder="e.g. Got married, had a baby...",
-        label_visibility="collapsed",
+        placeholder="e.g. Got married, moved abroad...",
+        label_visibility="collapsed"
     )
 
 with col2:
+
     event_age = st.number_input(
         "",
         min_value=1,
         max_value=100,
         value=20,
-        label_visibility="collapsed",
+        label_visibility="collapsed"
     )
 
 c1, c2, c3 = st.columns([4, 1, 1])
 
 with c1:
+
     selected_name = st.selectbox(
-        "Color",
+        "",
         list(PASTELS.keys()),
-        label_visibility="collapsed",
+        label_visibility="collapsed"
     )
 
 selected_hex = PASTELS[selected_name]
 
 with c2:
+
     st.markdown(
         f"""
         <div style="
@@ -154,37 +168,16 @@ with c2:
             margin-top:8px;">
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
 with c3:
+
     add_clicked = st.button("+ Add")
 
 # -------------------------------------------------------------------
-# Helpers
+# Event add
 # -------------------------------------------------------------------
-
-def detect_children(label):
-
-    label = label.lower()
-
-    if "quadruplets" in label:
-        return 4
-
-    if "triplets" in label:
-        return 3
-
-    if "twins" in label:
-        return 2
-
-    if any(
-        k in label
-        for k in ["baby", "child", "daughter", "son", "born"]
-    ):
-        return 1
-
-    return 0
-
 
 if add_clicked and event_label:
 
@@ -192,8 +185,11 @@ if add_clicked and event_label:
         "label": event_label,
         "age": int(event_age),
         "color": selected_hex,
-        "children": detect_children(event_label),
     })
+
+# -------------------------------------------------------------------
+# Show events
+# -------------------------------------------------------------------
 
 for idx, ev in enumerate(st.session_state.events):
 
@@ -204,7 +200,7 @@ for idx, ev in enumerate(st.session_state.events):
         st.markdown(
             f"<span style='color:{ev['color']};font-size:18px;'>●</span> "
             f"<strong>Age {ev['age']}</strong> — {ev['label']}",
-            unsafe_allow_html=True,
+            unsafe_allow_html=True
         )
 
     with cc2:
@@ -212,10 +208,11 @@ for idx, ev in enumerate(st.session_state.events):
         if st.button("×", key=f"del_{idx}"):
 
             st.session_state.events.pop(idx)
+
             st.rerun()
 
 # -------------------------------------------------------------------
-# Drawing
+# Helpers
 # -------------------------------------------------------------------
 
 def hex_to_rgb(hex_color):
@@ -227,17 +224,16 @@ def hex_to_rgb(hex_color):
         for i in (0, 2, 4)
     )
 
-
 def get_ring_color(pt, t):
 
-    if pt in PERSONALITY_COLORS:
+    base = hex_to_rgb(
+        PERSONALITY_COLORS.get(pt, "#D3B392")
+    )
 
-        base = hex_to_rgb(PERSONALITY_COLORS[pt])
-
-        return tuple(base[i] * (0.5 + 0.5 * t) for i in range(3))
-
-    return (0.24 + t*0.39, 0.12 + t*0.22, 0.02 + t*0.10)
-
+    return tuple(
+        min(1.0, c * (0.45 + t * 0.65))
+        for c in base
+    )
 
 def ease(t, mode):
 
@@ -250,15 +246,14 @@ def ease(t, mode):
     elif mode == "bounce":
 
         if t < 0.7:
-            return (t / 0.7) ** 2 * 1.15
+            return (t / 0.7) ** 2 * 1.12
 
-        return 1.15 - (1.15 - 1.0) * ((t - 0.7) / 0.3)
+        return 1.12 - (1.12 - 1.0) * ((t - 0.7) / 0.3)
 
     return t
 
-
 # -------------------------------------------------------------------
-# NEW 3D RING ENGINE
+# Ring renderer
 # -------------------------------------------------------------------
 
 def draw_ring(
@@ -274,57 +269,64 @@ def draw_ring(
     depth=1.0,
 ):
 
-    steps = 900
+    steps = 240
 
-    angles = np.linspace(0, 2*np.pi, steps)
+    angles = np.linspace(
+        0,
+        2 * np.pi,
+        steps
+    )
 
     seed = ring_index * 17
 
-    y_scale = 0.82 + (0.12 * (1.0 - depth))
-
-    light_angle = -np.pi / 4
-
-    # ---------------------------------------------------------
-    # personality deformation
-    # ---------------------------------------------------------
+    # ---------------------------------------------------------------
+    # Organic deformation
+    # ---------------------------------------------------------------
 
     if personality_type == "phlegmatic":
 
-        freq = 6
-        amp = r * 0.045
-        phase = (seed % 628) / 100
+        freq = 5
+        amp = r * 0.035
 
-        rr = r + np.sin(angles * freq + phase) * amp
+        rr = r + np.sin(
+            angles * freq + seed * 0.01
+        ) * amp
 
     elif personality_type == "melancholic":
 
-        freq = 32
-        amp = r * 0.008
-        phase = (seed % 628) / 100
+        freq = 28
+        amp = r * 0.006
 
-        rr = r + np.sin(angles * freq + phase) * amp
+        rr = r + np.sin(
+            angles * freq + seed * 0.01
+        ) * amp
 
     elif personality_type == "sanguine":
 
-        freq = 12
+        freq = 10
         amp = r * 0.05
-        phase = (seed % 628) / 100
 
-        rr = r + np.sin(angles * freq + phase) * amp
+        rr = r + np.sin(
+            angles * freq + seed * 0.01
+        ) * amp
 
     elif personality_type == "choleric":
 
         np.random.seed(seed)
 
-        freq = 14 + np.random.randint(0, 5)
+        freq = 12 + np.random.randint(0, 4)
 
         amp = r * 0.045
 
-        phase = np.random.rand()
+        rr = r + np.sin(
+            angles * freq
+        ) * amp
 
-        rr = r + np.sin(angles * freq + phase) * amp
-
-        noise = np.random.uniform(-0.012, 0.012, len(angles))
+        noise = np.random.uniform(
+            -0.01,
+            0.01,
+            len(angles)
+        )
 
         rr *= (1 + noise * depth)
 
@@ -332,27 +334,23 @@ def draw_ring(
 
         rr = np.full_like(angles, r)
 
-    # ---------------------------------------------------------
-    # geometry
-    # ---------------------------------------------------------
+    # ---------------------------------------------------------------
+    # Perspective
+    # ---------------------------------------------------------------
 
-    x_base = np.cos(angles) * rr
+    y_scale = 0.82
 
-    y_base = np.sin(angles) * rr * y_scale
+    x = np.cos(angles) * rr
 
-    # ---------------------------------------------------------
-    # directional lighting
-    # ---------------------------------------------------------
+    y = np.sin(angles) * rr * y_scale
 
-    light = 0.60 + 0.40 * np.cos(angles - light_angle)
-
-    # ---------------------------------------------------------
-    # extrusion layers
-    # ---------------------------------------------------------
+    # ---------------------------------------------------------------
+    # Extrusion depth
+    # ---------------------------------------------------------------
 
     if depth > 0.01:
 
-        layers = int(20 * depth)
+        layers = int(10 * depth)
 
         extrusion = 0.018 * depth
 
@@ -360,81 +358,66 @@ def draw_ring(
 
             t = z / max(layers, 1)
 
-            ox = extrusion * z
+            dark = 0.55 - (t * 0.18)
 
+            layer_color = (
+                color[0] * dark,
+                color[1] * dark,
+                color[2] * dark,
+            )
+
+            ox = extrusion * z
             oy = -extrusion * z
 
-            darkness = 0.55 - (t * 0.20)
+            ax.plot(
+                cx + x + ox,
+                cy + y + oy,
+                color=layer_color,
+                linewidth=linewidth + 1.4,
+                alpha=alpha * 0.9,
+                solid_capstyle="round",
+            )
 
-            layer_colors = [
+    # ---------------------------------------------------------------
+    # Top ring
+    # ---------------------------------------------------------------
 
-                (
-                    min(1.0, max(0.0, color[0] * darkness * l)),
-                    min(1.0, max(0.0, color[1] * darkness * l)),
-                    min(1.0, max(0.0, color[2] * darkness * l)),
-                )
+    top_color = (
+        min(1.0, color[0] + 0.08),
+        min(1.0, color[1] + 0.08),
+        min(1.0, color[2] + 0.08),
+    )
 
-                for l in light
-            ]
-
-            layer_lw = linewidth + (1.8 * (1 - t))
-
-            for i in range(len(angles) - 1):
-
-                ax.plot(
-                    [cx + ox + x_base[i], cx + ox + x_base[i + 1]],
-                    [cy + oy + y_base[i], cy + oy + y_base[i + 1]],
-                    color=layer_colors[i],
-                    alpha=alpha * 0.95,
-                    linewidth=layer_lw,
-                    solid_capstyle="round",
-                )
-
-    # ---------------------------------------------------------
-    # top surface
-    # ---------------------------------------------------------
-
-    top_colors = [
-
-        (
-            min(1.0, color[0] * l + 0.08),
-            min(1.0, color[1] * l + 0.08),
-            min(1.0, color[2] * l + 0.08),
-        )
-
-        for l in light
-    ]
-
-    for i in range(len(angles) - 1):
-
-        ax.plot(
-            [cx + x_base[i], cx + x_base[i + 1]],
-            [cy + y_base[i], cy + y_base[i + 1]],
-            color=top_colors[i],
-            alpha=alpha,
-            linewidth=linewidth,
-            solid_capstyle="round",
-        )
-
+    ax.plot(
+        cx + x,
+        cy + y,
+        color=top_color,
+        linewidth=linewidth,
+        alpha=alpha,
+        solid_capstyle="round",
+    )
 
 # -------------------------------------------------------------------
-# Main artwork
+# Generate artwork
 # -------------------------------------------------------------------
 
-def generate_art(age, personality_type, events, depth=1.0):
+def generate_art(
+    age,
+    personality_type,
+    events,
+    depth=1.0
+):
 
     fig, ax = plt.subplots(
         figsize=(7, 7),
-        facecolor="#ffffff"
+        facecolor="white"
     )
 
-    ax.set_facecolor("#ffffff")
-
-    ax.set_aspect(0.82)
+    ax.set_facecolor("white")
 
     ax.axis("off")
 
-    cx, cy = 0, 0
+    ax.set_aspect("equal")
 
     core_r = 0.12
 
@@ -442,7 +425,10 @@ def generate_art(age, personality_type, events, depth=1.0):
 
     step = (max_r - core_r) / max(age, 1)
 
-    event_map = {ev["age"]: ev for ev in events}
+    event_map = {
+        ev["age"]: ev
+        for ev in events
+    }
 
     for i in range(1, age + 1):
 
@@ -450,46 +436,75 @@ def generate_art(age, personality_type, events, depth=1.0):
 
         t = i / age
 
-        lw = 0.7
-
         if i in event_map:
 
-            color = hex_to_rgb(event_map[i]["color"])
+            color = hex_to_rgb(
+                event_map[i]["color"]
+            )
 
-            alpha = 0.9
+            alpha = 0.95
 
             lw = 1.6
 
         else:
 
-            color = get_ring_color(personality_type, t)
+            color = get_ring_color(
+                personality_type,
+                t
+            )
 
-            alpha = 0.12 + t * 0.55
+            alpha = 0.15 + t * 0.5
+
+            lw = 0.8
 
         draw_ring(
-            ax,
-            cx,
-            cy,
-            r,
-            personality_type,
-            i,
-            color,
-            alpha,
-            lw,
+            ax=ax,
+            cx=0,
+            cy=0,
+            r=r,
+            personality_type=personality_type,
+            ring_index=i,
+            color=color,
+            alpha=alpha,
+            linewidth=lw,
             depth=depth,
         )
 
+    # Core
+
     ax.add_patch(
+
         plt.Circle(
-            (cx, cy),
-            core_r * 0.6,
-            color=PERSONALITY_COLORS.get(
-                personality_type,
-                "#D3B392"
-            ),
+            (0, 0),
+            core_r * 0.65,
+            color=PERSONALITY_COLORS[
+                personality_type
+            ],
             zorder=10,
         )
     )
+
+    # Legend
+
+    if events:
+
+        for ev in events:
+
+            ax.plot(
+                [],
+                [],
+                color=hex_to_rgb(ev["color"]),
+                linewidth=3,
+                label=f"Age {ev['age']}: {ev['label']}"
+            )
+
+        ax.legend(
+            loc="lower center",
+            bbox_to_anchor=(0.5, -0.08),
+            frameon=False,
+            fontsize=8,
+            ncol=2
+        )
 
     ax.set_xlim(-4, 4)
 
@@ -499,59 +514,37 @@ def generate_art(age, personality_type, events, depth=1.0):
 
     return fig
 
-
 # -------------------------------------------------------------------
 # Deep dive button
 # -------------------------------------------------------------------
 
 cfg = ANIM_CONFIG[personality_type]
 
-btn_label = (
+button_text = (
     "🌿 Return to surface"
     if st.session_state.is_3d
     else "🔮 Deep Dive"
 )
 
-col_btn, col_status = st.columns([2, 5])
+clicked = st.button(
+    button_text,
+    use_container_width=True,
+    disabled=st.session_state.animating
+)
 
-with col_btn:
-
-    deep_dive_clicked = st.button(
-        btn_label,
-        use_container_width=True,
-        disabled=st.session_state.animating,
-    )
-
-with col_status:
-
-    if st.session_state.animating:
-
-        direction = (
-            "→ 3D"
-            if not st.session_state.is_3d
-            else "→ 2D"
-        )
-
-        st.caption(f"{cfg['label']} {direction}")
-
-    elif st.session_state.is_3d:
-
-        st.caption("✦ Deep view active")
-
-
-if deep_dive_clicked and not st.session_state.animating:
+if clicked and not st.session_state.animating:
 
     st.session_state.animating = True
 
-    st.session_state.is_3d = not st.session_state.is_3d
-
-st.markdown("---")
+    st.session_state.is_3d = (
+        not st.session_state.is_3d
+    )
 
 # -------------------------------------------------------------------
 # Render
 # -------------------------------------------------------------------
 
-chart_placeholder = st.empty()
+placeholder = st.empty()
 
 if st.session_state.animating:
 
@@ -561,30 +554,28 @@ if st.session_state.animating:
 
     easing_mode = cfg["easing"]
 
-    going_3d = st.session_state.is_3d
+    target_3d = st.session_state.is_3d
 
     for frame in range(steps + 1):
 
-        t_linear = frame / steps
+        t = frame / steps
 
-        t_eased = ease(t_linear, easing_mode)
+        eased = ease(t, easing_mode)
 
         depth = (
-            t_eased
-            if going_3d
-            else 1.0 - t_eased
+            eased
+            if target_3d
+            else 1.0 - eased
         )
-
-        depth = max(0.0, min(1.0, depth))
 
         fig = generate_art(
-            int(age),
+            age,
             personality_type,
             st.session_state.events,
-            depth=depth,
+            depth
         )
 
-        chart_placeholder.pyplot(fig)
+        placeholder.pyplot(fig)
 
         plt.close(fig)
 
@@ -593,7 +584,7 @@ if st.session_state.animating:
             time.sleep(sleep)
 
     st.session_state.depth = (
-        1.0 if going_3d else 0.0
+        1.0 if target_3d else 0.0
     )
 
     st.session_state.animating = False
@@ -603,13 +594,13 @@ if st.session_state.animating:
 else:
 
     fig = generate_art(
-        int(age),
+        age,
         personality_type,
         st.session_state.events,
-        depth=st.session_state.depth,
+        st.session_state.depth
     )
 
-    chart_placeholder.pyplot(fig)
+    placeholder.pyplot(fig)
 
 # -------------------------------------------------------------------
 # Download
@@ -620,13 +611,13 @@ buf = BytesIO()
 fig.savefig(
     buf,
     format="png",
-    dpi=200,
-    bbox_inches="tight",
+    dpi=140,
+    bbox_inches="tight"
 )
 
 buf.seek(0)
 
-mode_tag = (
+mode = (
     "3d"
     if st.session_state.is_3d
     else "2d"
@@ -635,6 +626,6 @@ mode_tag = (
 st.download_button(
     label="⬇️ Download portrait",
     data=buf,
-    file_name=f"portrait_{mode_tag}.png",
-    mime="image/png",
+    file_name=f"portrait_{mode}.png",
+    mime="image/png"
 )
