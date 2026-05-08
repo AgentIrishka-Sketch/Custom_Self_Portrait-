@@ -5,7 +5,7 @@ from io import BytesIO
 
 st.set_page_config(page_title="RINGS — Year by Year", layout="centered")
 st.title("RINGS — Year by Year")
-st.write(" Hi there! My name is Irina. Here's a fun project you can try — and a chance to see a tangible outcome of my art shaped by your own data. Feel free to download your final personalised infographic. This is just the beginning — I'll be adding new features soon! We can also print your artwork on beautiful textured paper and send it directly to you. Enjoy!")
+st.write(" Hi there! My name is Irina. Here’s a fun project you can try — and a chance to see a tangible outcome of my art shaped by your own data. Feel free to download your final personalised infographic. This is just the beginning — I’ll be adding new features soon! We can also print your artwork on beautiful textured paper and send it directly to you. Enjoy!")
 st.write("The concept: Each line represents a year of your life, inspired by the quiet rings inside a tree. This is your foundation. The rest reveals itself.")
 
 # Pastel colors with friendly names
@@ -175,83 +175,56 @@ def get_ring_color(personality_type, t):
     return (0.24 + t * 0.39, 0.12 + t * 0.22, 0.02 + t * 0.10)
 
 
-# --- 3D helpers ---
-def _adjust_color(color, factor):
-    """factor < 1 darkens, factor > 1 lightens (clamped 0-1)."""
-    return tuple(min(1.0, max(0.0, c * factor)) for c in color)
-
-def _add_brightness(color, amount):
-    """Add a flat brightness offset to each channel (clamped 0-1)."""
-    return tuple(min(1.0, max(0.0, c + amount)) for c in color)
-
-
-# --- Draw a single ring with highlight + shadow 3D effect ---
+# --- Draw a single ring ---
 def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewidth):
     steps = 800
     angles = np.linspace(0, 2 * np.pi, steps)
     seed = ring_index * 17
 
-    # Shadow shifts down-right; highlight shifts up-left
-    shadow_offset   = max(r * 0.012, 0.018)
-    sx, sy          =  shadow_offset, -shadow_offset   # down-right
-    hx, hy          = -shadow_offset,  shadow_offset   # up-left
+    if personality_type == "phlegmatic":
+        freq = 6
+        amp = r * 0.045
+        phase = (seed % 628) / 100
+        rr = r + np.sin(angles * freq + phase) * amp
+        x = cx + np.cos(angles) * rr
+        y = cy + np.sin(angles) * rr
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
-    shadow_color    = _adjust_color(color, 0.45)
-    highlight_color = _add_brightness(color, 0.30)
+    elif personality_type == "melancholic":
+        num_lines = 72
+        for angle in np.linspace(0, 2 * np.pi, num_lines, endpoint=False):
+            x_start = cx + np.cos(angle) * (r - 0.02)
+            x_end   = cx + np.cos(angle) * (r + 0.02)
+            y_start = cy + np.sin(angle) * (r - 0.02)
+            y_end   = cy + np.sin(angle) * (r + 0.02)
+            ax.plot([x_start, x_end], [y_start, y_end],
+                    color=color, alpha=alpha, linewidth=linewidth)
 
-    def _plot_pass(cx_, cy_, col, alp, lw):
-        """Render one pass of the ring at the given center offset."""
-        if personality_type == "phlegmatic":
-            freq  = 6
-            amp   = r * 0.045
-            phase = (seed % 628) / 100
-            rr    = r + np.sin(angles * freq + phase) * amp
-            x     = cx_ + np.cos(angles) * rr
-            y     = cy_ + np.sin(angles) * rr
-            ax.plot(x, y, color=col, alpha=alp, linewidth=lw)
+    elif personality_type == "sanguine":
+        freq = 12
+        amp = r * 0.045
+        phase = (seed % 628) / 100
+        rr = r + np.sin(angles * freq + phase) * amp
+        x = cx + np.cos(angles) * rr
+        y = cy + np.sin(angles) * rr
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
-        elif personality_type == "melancholic":
-            num_lines = 72
-            for angle in np.linspace(0, 2 * np.pi, num_lines, endpoint=False):
-                x_start = cx_ + np.cos(angle) * (r - 0.02)
-                x_end   = cx_ + np.cos(angle) * (r + 0.02)
-                y_start = cy_ + np.sin(angle) * (r - 0.02)
-                y_end   = cy_ + np.sin(angle) * (r + 0.02)
-                ax.plot([x_start, x_end], [y_start, y_end],
-                        color=col, alpha=alp, linewidth=lw)
+    elif personality_type == "choleric":
+        np.random.seed(seed)
+        freq = 12 + np.random.randint(0, 4)
+        amp = r * 0.04
+        phase = np.random.rand()
+        rr = r + np.sin(angles * freq + phase) * amp
+        noise = np.random.uniform(-0.01, 0.01, len(angles))
+        rr = rr * (1 + noise)
+        x = cx + np.cos(angles) * rr
+        y = cy + np.sin(angles) * rr
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
-        elif personality_type == "sanguine":
-            freq  = 12
-            amp   = r * 0.045
-            phase = (seed % 628) / 100
-            rr    = r + np.sin(angles * freq + phase) * amp
-            x     = cx_ + np.cos(angles) * rr
-            y     = cy_ + np.sin(angles) * rr
-            ax.plot(x, y, color=col, alpha=alp, linewidth=lw)
-
-        elif personality_type == "choleric":
-            np.random.seed(seed)
-            freq  = 12 + np.random.randint(0, 4)
-            amp   = r * 0.04
-            phase = np.random.rand()
-            rr    = r + np.sin(angles * freq + phase) * amp
-            noise = np.random.uniform(-0.01, 0.01, len(angles))
-            rr    = rr * (1 + noise)
-            x     = cx_ + np.cos(angles) * rr
-            y     = cy_ + np.sin(angles) * rr
-            ax.plot(x, y, color=col, alpha=alp, linewidth=lw)
-
-        else:
-            x = cx_ + np.cos(angles) * r
-            y = cy_ + np.sin(angles) * r
-            ax.plot(x, y, color=col, alpha=alp, linewidth=lw)
-
-    # Pass 1 — shadow (shifted down-right, darker, semi-transparent)
-    _plot_pass(cx + sx, cy + sy, shadow_color,    alpha * 0.35, linewidth * 1.8)
-    # Pass 2 — main ring (unchanged position)
-    _plot_pass(cx,      cy,      color,            alpha,        linewidth)
-    # Pass 3 — highlight (shifted up-left, brighter, subtle)
-    _plot_pass(cx + hx, cy + hy, highlight_color, alpha * 0.45, linewidth * 0.55)
+    else:
+        x = cx + np.cos(angles) * r
+        y = cy + np.sin(angles) * r
+        ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
 
 # --- Draw a child portrait ---
@@ -279,6 +252,7 @@ def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type):
 
 # --- Generate full artwork ---
 def generate_art(age, personality_type, events):
+    # collect all children, storing event_age for correct ring lookup
     all_children = []
     for ev in events:
         n = ev.get("children", 0)
@@ -287,7 +261,7 @@ def generate_art(age, personality_type, events):
             all_children.append({
                 "age":       child_age,
                 "color":     ev["color"],
-                "event_age": ev["age"],
+                "event_age": ev["age"],  # exact age when child was born
             })
 
     has_children = len(all_children) > 0
@@ -324,29 +298,43 @@ def generate_art(age, personality_type, events):
     if has_children:
         n = len(all_children)
         cx_child = 2.4
+
         total_span = min(5.5, n * 1.6)
         positions = np.linspace(-total_span / 2, total_span / 2, n) if n > 1 else [0.0]
 
         for i, child in enumerate(all_children):
             cy_child = positions[i]
+
+            # draw child portrait first so we have child_max_r
             child_max_r = draw_child_portrait(
                 ax, cx_child, cy_child,
                 child["age"], child["color"], personality_type,
             )
+
+            # use stored event_age to find exact birth ring radius
             birth_ring = child["event_age"]
             r_birth = core_r + birth_ring * step
+
+            # angle from parent center toward child center
             dx = cx_child - cx
             dy = cy_child - cy
             angle = np.arctan2(dy, dx)
+
+            # start: on parent ring at birth, in direction of child
             x_start = cx + r_birth * np.cos(angle)
             y_start = cy + r_birth * np.sin(angle)
+
+            # end: on child's outermost ring edge facing parent
             x_end = cx_child - child_max_r * np.cos(angle)
             y_end = cy_child - child_max_r * np.sin(angle)
+
             ax.plot(
-                [x_start, x_end], [y_start, y_end],
+                [x_start, x_end],
+                [y_start, y_end],
                 color="#C0A882", linewidth=0.5,
                 linestyle="--", alpha=0.4, zorder=0,
             )
+
             ax.text(
                 cx_child, cy_child - child_max_r - 0.15,
                 f"{child['age']}y",
