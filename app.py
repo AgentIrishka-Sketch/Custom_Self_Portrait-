@@ -39,6 +39,23 @@ PERSONALITY_COLORS = {
     "sanguine":    "#FAE0AA",
 }
 
+# --- Detect life event type  ---
+def detect_event_type(label):
+    text = label.lower()
+
+    if any(k in text for k in ["marriage", "married", "wedding", "love", "relationship", "partner", "engaged", "romance"]):
+        return "love"
+
+    if any(k in text for k in ["trauma", "accident", "loss", "death", "breakup", "divorce"]):
+        return "trauma"
+
+    if any(k in text for k in ["travel", "trip", "journey", "moved", "relocate"]):
+        return "travel"
+
+    if any(k in text for k in ["success", "promotion", "achievement", "award"]):
+        return "success"
+
+    return "normal"
 
 # --- Detect number of children from event label ---
 def detect_children(label):
@@ -134,7 +151,9 @@ if add_clicked and event_label:
         "age":      int(event_age),
         "color":    selected_hex,
         "children": detect_children(event_label),
+        "type": detect_event_type(event_label)
     })
+
 
 # Show added events with remove button
 for idx, ev in enumerate(st.session_state.events):
