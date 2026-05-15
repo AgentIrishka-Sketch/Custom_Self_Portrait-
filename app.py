@@ -33,10 +33,10 @@ PASTELS = {
 }
 
 PERSONALITY_COLORS = {
-    "phlegmatic": "#B8D6BE",
-    "melancholic": "#A7C4EB",
-    "choleric":    "#F4A896",
-    "sanguine":    "#FAE0AA",
+    "peace": "#B8D6BE",
+    "success": "#A7C4EB",
+    "freedom":    "#F4A896",
+    "connection":    "#FAE0AA",
 }
 
 # --- Detect life event type  ---
@@ -79,10 +79,10 @@ with col_age:
 
 col_personality, = st.columns(1)
 with col_personality:
-    st.markdown("**What is your personality type?**")
+    st.markdown("**What do you value more?**")
     personality_type = st.radio(
         "",
-        ["Phlegmatic", "Melancholic", "Sanguine", "Choleric"],
+        ["Peace", "Success", "Freedom", "Connection"],
         index=0,
         horizontal=True,
         label_visibility="collapsed"
@@ -200,7 +200,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
     angles = np.linspace(0, 2 * np.pi, steps)
     seed = ring_index * 17
 
-    if personality_type == "phlegmatic":
+    if personality_type == "peace":
         freq = 6
         amp = r * 0.045
         phase = (seed % 628) / 100
@@ -209,7 +209,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         y = cy + np.sin(angles) * rr
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
-    elif personality_type == "melancholic":
+    elif personality_type == "success":
         num_lines = 72
         for angle in np.linspace(0, 2 * np.pi, num_lines, endpoint=False):
             x_start = cx + np.cos(angle) * (r - 0.02)
@@ -219,7 +219,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
             ax.plot([x_start, x_end], [y_start, y_end],
                     color=color, alpha=alpha, linewidth=linewidth)
 
-    elif personality_type == "sanguine":
+    elif personality_type == "freedom":
         freq = 12
         amp = r * 0.045
         phase = (seed % 628) / 100
@@ -228,7 +228,7 @@ def draw_ring(ax, cx, cy, r, personality_type, ring_index, color, alpha, linewid
         y = cy + np.sin(angles) * rr
         ax.plot(x, y, color=color, alpha=alpha, linewidth=linewidth)
 
-    elif personality_type == "choleric":
+    elif personality_type == "connection":
         np.random.seed(seed)
         freq = 12 + np.random.randint(0, 4)
         amp = r * 0.04
