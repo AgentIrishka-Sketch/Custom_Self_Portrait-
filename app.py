@@ -8,6 +8,7 @@ st.title("RINGS — Year by Year")
 st.write(" Hi there! My name is Irina. Here’s a fun project you can try — and a chance to see a tangible outcome of my art shaped by your own data. Feel free to download your final personalised infographic. This is just the beginning — I’ll be adding new features soon! We can also print your artwork on beautiful textured paper and send it directly to you. Enjoy!")
 st.write("The concept: Each line represents a year of your life, inspired by the quiet rings inside a tree. This is your foundation. The rest reveals itself.")
 
+
 # Pastel colors with friendly names
 PASTELS = {
     "Rose":        "#F4A7B9",
@@ -38,6 +39,45 @@ PERSONALITY_COLORS = {
     "freedom":    "#F4A896",
     "connection":    "#FAE0AA",
 }
+
+# Mood palette — pastels that harmonize with warm ring tones
+# 0 = cool blue-grey (low), through mauves/peach, to warm cream-gold (100)
+MOOD_PALETTE = [
+    (0,   (210, 215, 225)),  # cool blue-grey
+    (20,  (220, 210, 228)),  # dusty lavender
+    (40,  (238, 218, 215)),  # muted rose
+    (60,  (245, 228, 210)),  # warm peach
+    (80,  (250, 236, 210)),  # soft apricot
+    (100, (252, 244, 220)),  # warm cream-gold
+]
+ 
+MOOD_WORDS = [
+    (10,  "heavy"),
+    (25,  "low"),
+    (40,  "quiet"),
+    (55,  "okay"),
+    (65,  "content"),
+    (78,  "good"),
+    (88,  "bright"),
+    (100, "radiant"),
+]
+
+def get_mood_color(mood):
+    """Interpolate through MOOD_PALETTE and return an (r,g,b) tuple 0-255."""
+    for i in range(len(MOOD_PALETTE) - 1):
+        s0, c0 = MOOD_PALETTE[i]
+        s1, c1 = MOOD_PALETTE[i + 1]
+        if s0 <= mood <= s1:
+            t = (mood - s0) / (s1 - s0)
+            return tuple(int(c0[j] + (c1[j] - c0[j]) * t) for j in range(3))
+    return MOOD_PALETTE[-1][1]
+ 
+def mood_word(mood):
+    for threshold, word in MOOD_WORDS:
+        if mood <= threshold:
+            return word
+    return "radiant"
+
 
 # --- Detect life event type  ---
 def detect_event_type(label):
@@ -89,6 +129,22 @@ with col_personality:
     )
     personality_type = personality_type.lower()
 
+st.markdown("---")
+
+# --- Mood slider ---
+st.markdown("**How do you feel lately?**")
+mood = st.slider("", min_value=0, max_value=100, value=50, label_visibility="collapsed")
+rgb = get_mood_color(mood)
+hex_bg = "#{:02x}{:02x}{:02x}".format(*rgb)
+word = mood_word(mood)
+st.markdown(
+    f"<div style='display:flex; align-items:center; gap:12px; margin-top:-8px;'>"
+    f"<div style='width:20px;height:20px;border-radius:50%;background:{hex_bg};border:1px solid #ccc;'></div>"
+    f"<span style='font-size:13px;color:#888;font-style:italic;'>{word}</span>"
+    f"</div>",
+    unsafe_allow_html=True,
+)
+ 
 st.markdown("---")
 
 # --- Life events section ---
@@ -270,7 +326,12 @@ def draw_child_portrait(ax, cx, cy, child_age, color_hex, personality_type):
 
 
 # --- Generate full artwork ---
-def generate_art(age, personality_type, events):
+def generate_art(age, personality_type, events, mood):
+
+    # Background color derived from mood
+    rgb = get_mood_color(mood)
+    bg_float = tuple(c / 255 for c in rgb)   # matplotlib needs 0-1 floats
+    
     # collect all children, storing event_age for correct ring lookup
     all_children = []
     for ev in events:
@@ -286,8 +347,8 @@ def generate_art(age, personality_type, events):
     has_children = len(all_children) > 0
 
     fig_w = 12 if has_children else 7
-    fig, ax = plt.subplots(figsize=(fig_w, 7), facecolor="#ffffff")
-    ax.set_facecolor("#ffffff")
+    fig, ax = plt.subplots(figsize=(fig_w, 7), facecolor=bg_float)
+    ax.set_facecolor(bg_float)
     ax.set_aspect("equal")
     ax.axis("off")
 
@@ -327,7 +388,7 @@ def generate_art(age, personality_type, events):
             # draw child portrait first so we have child_max_r
             child_max_r = draw_child_portrait(
                 ax, cx_child, cy_child,
-                child["age"], child["color"], personality_type,
+                child["age"], child["color"], personality_type, bg_float
             )
 
             # use stored event_age to find exact birth ring radius
@@ -377,7 +438,7 @@ def generate_art(age, personality_type, events):
 
 
 # --- Live render ---
-fig = generate_art(int(age), personality_type, st.session_state.events)
+fig = generate_art(int(age), personality_type, st.session_state.events, mood)
 st.pyplot(fig)
 
 # --- Download button ---
@@ -387,6 +448,6 @@ buf.seek(0)
 st.download_button(
     label="⬇️ Download portrait",
     data=buf,
-    file_name=f"portrait_age{int(age)}_{personality_type}.png",
+    file_name=f"portrait_age{int(age)}_{personality_type}_mood{mood}.png",
     mime="image/png",
 )
