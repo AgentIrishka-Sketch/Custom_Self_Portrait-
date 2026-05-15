@@ -43,7 +43,7 @@ PERSONALITY_COLORS = {
 # Mood palette — pastels that harmonize with warm ring tones
 # 0 = cool blue-grey (low), through mauves/peach, to warm cream-gold (100)
 MOOD_PALETTE = [
-    (0,   (210, 215, 225)),  # cool blue-grey
+    (0,   (205, 213, 198)),  # cool blue-green
     (20,  (220, 210, 228)),  # dusty lavender
     (40,  (238, 218, 215)),  # muted rose
     (60,  (245, 228, 210)),  # warm peach
