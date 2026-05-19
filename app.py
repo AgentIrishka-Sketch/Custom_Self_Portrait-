@@ -42,7 +42,7 @@ PERSONALITY_COLORS = {
 }
 
 # Mood palette — pastels that harmonize with warm ring tones
-# 0 = cool blue-grey (low), through mauves/peach, to warm cream-gold (100)
+# 0 = cool blue-grey (heavy), through mauves/peach, to warm cream-gold (100)
 MOOD_PALETTE = [
     (0,   (184, 169, 183)),  # cool blue-green 184, 169, 183
     (20,  (220, 210, 228)),  # dusty lavender
@@ -222,7 +222,7 @@ mood_html = f"""
   <div class="mood-track" id="moodTrack">
     <div class="mood-thumb" id="moodThumb" style="left:50%"></div>
   </div>
-  <div class="mood-labels"><span>low</span><span>radiant</span></div>
+  <div class="mood-labels"><span>heavy</span><span>radiant</span></div>
   <div class="mood-word" id="moodWord">okay</div>
 </div>
 <script>
