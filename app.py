@@ -272,7 +272,12 @@ mood_html = f"""
  
 st.components.v1.html(mood_html, height=100)
  
-
+# The actual mood value — use a compact slider styled to match
+mood = st.slider(
+    "", min_value=0, max_value=100, value=50,
+    label_visibility="collapsed",
+    key="mood_slider"
+)
 
 # Show current swatch
 rgb = get_mood_color(mood)
