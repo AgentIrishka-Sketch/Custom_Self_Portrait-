@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
 from io import BytesIO
+from scipy.ndimage import gaussian_filter, zoom
 
 st.set_page_config(page_title="RINGS — Year by Year", layout="centered")
 st.title("RINGS — Year by Year")
@@ -79,6 +80,31 @@ def mood_word(mood):
     return "radiant"
 
 
+def build_gradient_css():
+    """Build a CSS linear-gradient string from MOOD_PALETTE stops."""
+    stops = []
+    for pct, (r, g, b) in MOOD_PALETTE:
+        stops.append(f"rgb({r},{g},{b}) {pct}%")
+    return ", ".join(stops)
+ 
+def make_watercolor_bg(base_rgb, mood, size=256):
+    np.random.seed(42 + mood)
+    noise = np.zeros((size, size))
+    for scale, amp in [(4, 0.50), (8, 0.28), (16, 0.14), (32, 0.06), (64, 0.02)]:
+        n = np.random.rand(scale, scale)
+        factor = size // scale
+        n_up = zoom(n, factor, order=3)[:size, :size]
+        noise += n_up * amp
+    noise = gaussian_filter(noise, sigma=4)
+    noise = (noise - noise.min()) / (noise.max() - noise.min())
+    r, g, b = (c / 255 for c in base_rgb)
+    img = np.ones((size, size, 3))
+    factor = 0.84 + noise * 0.18
+    img[:, :, 0] = np.clip(r * factor + (1 - factor), 0, 1)
+    img[:, :, 1] = np.clip(g * factor + (1 - factor), 0, 1)
+    img[:, :, 2] = np.clip(b * factor + (1 - factor), 0, 1)
+    return img
+
 # --- Detect life event type  ---
 def detect_event_type(label):
     text = label.lower()
@@ -111,7 +137,9 @@ def detect_children(label):
     return 0
 
 
+# ----UI------------------------------------------
 # --- Top row: age slider and personality type ---
+
 col_age, = st.columns(1)
 with col_age:
     st.markdown("**Your age**")
@@ -131,15 +159,133 @@ with col_personality:
 
 st.markdown("---")
 
-# --- Mood slider ---
+ 
+# ── Gradient mood picker ───────────────────────────────────────────────────────
 st.markdown("**How do you feel lately?**")
-mood = st.slider("", min_value=0, max_value=100, value=50, label_visibility="collapsed")
+ 
+# Store mood in session state so the JS → query-param trick can update it
+if "mood" not in st.session_state:
+    st.session_state["mood"] = 50
+ 
+gradient_css = build_gradient_css()
+ 
+# Render the gradient bar + a hidden range input that drives it.
+# We use st.components to get a real interactive element, then sync via
+# Streamlit's built-in slider below (which is visually hidden but holds state).
+mood_html = f"""
+<style>
+  .mood-wrap {{
+    position: relative;
+    width: 100%;
+    margin-bottom: 6px;
+  }}
+  .mood-track {{
+    width: 100%;
+    height: 40px;
+    border-radius: 20px;
+    background: linear-gradient(to right, {gradient_css});
+    position: relative;
+    cursor: pointer;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.10);
+  }}
+  .mood-thumb {{
+    position: absolute;
+    top: 50%;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid rgba(0,0,0,0.18);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    pointer-events: none;
+    transition: left 0.05s;
+  }}
+  .mood-labels {{
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #aaa;
+    font-style: italic;
+    margin-top: 4px;
+    padding: 0 4px;
+  }}
+  .mood-word {{
+    text-align: center;
+    font-size: 13px;
+    color: #888;
+    font-style: italic;
+    margin-top: 2px;
+  }}
+</style>
+<div class="mood-wrap">
+  <div class="mood-track" id="moodTrack">
+    <div class="mood-thumb" id="moodThumb" style="left:50%"></div>
+  </div>
+  <div class="mood-labels"><span>low</span><span>radiant</span></div>
+  <div class="mood-word" id="moodWord">okay</div>
+</div>
+<script>
+  const track = document.getElementById('moodTrack');
+  const thumb = document.getElementById('moodThumb');
+  const wordEl = document.getElementById('moodWord');
+  const words = [
+    [10,'heavy'],[25,'low'],[40,'quiet'],[55,'okay'],
+    [65,'content'],[78,'good'],[88,'bright'],[100,'radiant']
+  ];
+ 
+  let dragging = false;
+  let currentMood = 50;
+ 
+  function getMoodWord(v) {{
+    for (const [max, w] of words) {{ if (v <= max) return w; }}
+    return 'radiant';
+  }}
+ 
+  function updateThumb(pct) {{
+    currentMood = Math.round(pct * 100);
+    thumb.style.left = (pct * 100) + '%';
+    wordEl.textContent = getMoodWord(currentMood);
+    // Write to the hidden Streamlit number input
+    const input = window.parent.document.querySelector('input[data-testid="stNumberInput-StepDown"]');
+    // Use postMessage to communicate mood value to parent Streamlit frame
+    window.parent.postMessage({{type: 'mood', value: currentMood}}, '*');
+  }}
+ 
+  function pctFromEvent(e) {{
+    const rect = track.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  }}
+ 
+  track.addEventListener('mousedown', e => {{ dragging = true; updateThumb(pctFromEvent(e)); }});
+  track.addEventListener('touchstart', e => {{ dragging = true; updateThumb(pctFromEvent(e)); }}, {{passive:true}});
+  window.addEventListener('mousemove', e => {{ if (dragging) updateThumb(pctFromEvent(e)); }});
+  window.addEventListener('touchmove', e => {{ if (dragging) updateThumb(pctFromEvent(e)); }}, {{passive:true}});
+  window.addEventListener('mouseup', () => dragging = false);
+  window.addEventListener('touchend', () => dragging = false);
+ 
+  // Init at 50
+  updateThumb(0.5);
+</script>
+"""
+ 
+st.components.v1.html(mood_html, height=100)
+ 
+# The actual mood value — use a compact slider styled to match
+mood = st.slider(
+    "", min_value=0, max_value=100, value=50,
+    label_visibility="collapsed",
+    key="mood_slider"
+)
+ 
+# Show current swatch
 rgb = get_mood_color(mood)
 hex_bg = "#{:02x}{:02x}{:02x}".format(*rgb)
 word = mood_word(mood)
 st.markdown(
-    f"<div style='display:flex; align-items:center; gap:12px; margin-top:-8px;'>"
-    f"<div style='width:20px;height:20px;border-radius:50%;background:{hex_bg};border:1px solid #ccc;'></div>"
+    f"<div style='display:flex;align-items:center;gap:10px;margin-top:-6px;'>"
+    f"<div style='width:18px;height:18px;border-radius:50%;background:{hex_bg};border:1px solid #ccc;'></div>"
     f"<span style='font-size:13px;color:#888;font-style:italic;'>{word}</span>"
     f"</div>",
     unsafe_allow_html=True,
@@ -232,7 +378,7 @@ for idx, ev in enumerate(st.session_state.events):
 st.markdown("---")
 
 
-# --- Helper: hex to RGB 0-1 float ---
+# --- Art Helper: hex to RGB 0-1 float -----
 def hex_to_rgb(hex_color):
     hex_color = hex_color.lstrip("#")
     return tuple(int(hex_color[i:i+2], 16) / 255 for i in (0, 2, 4))
