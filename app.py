@@ -277,7 +277,6 @@ mood = st.slider(
     "", min_value=0, max_value=100, value=50,
     label_visibility="collapsed",
     key="mood_slider"
-)
  
 # Show current swatch
 rgb = get_mood_color(mood)
